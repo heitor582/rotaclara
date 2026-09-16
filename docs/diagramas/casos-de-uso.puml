@@ -1,0 +1,36 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+title RotaClara — Casos de uso
+actor Motorista
+actor Gerente
+actor Administrador
+Gerente <|-- Administrador
+rectangle RotaClara {
+ usecase "UC01\nMontar e iniciar roteiro" as UC01
+ usecase "UC02\nRegistrar chegada/saída" as UC02
+ usecase "UC03\nConsultar dashboard" as UC03
+ usecase "UC04\nParametrizar custos e jornada" as UC04
+ usecase "UC05\nCadastrar equipe" as UC05
+ usecase "UC06\nConsultar/exportar histórico" as UC06
+ usecase "UC07\nCorrigir ponto com auditoria" as UC07
+ usecase "UC08\nAutenticar e encerrar sessão" as UC08
+}
+Motorista -- UC01
+Motorista -- UC02
+Motorista -- UC03
+Motorista -- UC06
+Motorista -- UC08
+Gerente -- UC01
+Gerente -- UC02
+Gerente -- UC03
+Gerente -- UC04
+Gerente -- UC05
+Gerente -- UC06
+Gerente -- UC07
+Gerente -- UC08
+note right of UC05
+  Somente administrador cadastra gerentes.
+  Gerente cadastra motoristas da própria equipe.
+end note
+@enduml

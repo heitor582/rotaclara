@@ -1,0 +1,26 @@
+@startuml
+skinparam componentStyle rectangle
+title RotaClara — Arquitetura física / componentes
+package "Cliente web" {
+ [Interface HTML/CSS] as UI
+ [Controlador de telas\napp.js] as JS
+ [Chart.js 4.4.8\nCDN jsDelivr] as CH
+}
+package "Servidor Python" {
+ [Handler HTTP\nserver.py] as H
+ [Regras puras\nbusiness.py] as B
+ [Persistência / sqlite3] as SQL
+}
+database "SQLite\nrotaclara.db" as DB
+UI --> JS : eventos
+JS --> CH : renderiza gráficos
+JS --> H : HTTP / JSON\ncookie de sessão
+H --> B : validações e cálculos
+H --> SQL : consultas parametrizadas\ne transações
+SQL --> DB : leitura / escrita
+note bottom of H
+  Autoriza cada consulta e mutação.
+  CSV gerado pelo servidor.
+  PDF via impressão no navegador.
+end note
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+skinparam classAttributeIconSize 0
+title RotaClara — Estrutura lógica da implementação Python
+class BaseHTTPRequestHandler <<biblioteca padrão>>
+class Handler {
+ +do_GET()
+ +do_POST()
+ +do_PUT()
+ +handle_request(method)
+ +get_api(db, user, path, query)
+ +write_api(db, user, path, method, data)
+ +user(db): dict
+ +require(user, roles)
+ +route(db, user, rid): dict
+ +audit(db, user, pid, action, before, after, reason)
+ +send(data, status, kind, headers)
+ +body(): dict
+}
+class "business.py" as Business <<módulo de funções>> {
+ +numero(valor, nome, minimo, maximo): float
+ +horario(valor): datetime
+ +calcularTempoParadoPonto(ponto, ordem): float
+ +calcularTempoTotalRoteiro(pontos): float
+ +calcularCustoRoteiro(distancia, preco, rendimento): float
+ +calcularPorcentagemJornada(minutos, jornada): float
+}
+class "server.py / funções" as Service <<módulo>> {
+ +init_db()
+ +seed_demo()
+ +connect(): Connection
+ +scope(user, alias): tuple
+ +recalc(db, rid)
+ +report_data(db, user, query): dict
+ +password_hash(password, salt): str
+ +now(): str
+}
+class "sqlite3.Connection" as Conn <<biblioteca padrão>> {
+ +execute(sql, parametros)
+ +executescript(sql)
+ +commit()
+ +rollback()
+}
+BaseHTTPRequestHandler <|-- Handler
+Handler ..> Business : valida e calcula
+Handler ..> Service : sessão, escopo e relatório
+Service ..> Business : recalcula totais
+Service ..> Conn : cria conexão
+Handler ..> Conn : persiste em transação
+note bottom of Service
+  Entidades de domínio são linhas SQLite/dicionários,
+  não classes ORM. O modelo conceitual é separado.
+end note
+@enduml

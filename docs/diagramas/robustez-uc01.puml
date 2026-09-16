@@ -1,0 +1,30 @@
+@startuml
+left to right direction
+title UC01 — Montar e iniciar roteiro
+actor "Motorista / Gerente / Administrador" as A
+boundary "Tela de roteiros" as T
+control "Autorizar acesso" as C1
+control "Montar roteiro\nvalidar data, motorista e ordem" as C2
+control "Iniciar roteiro\nvalidar data atual e estado" as C3
+entity "Motorista" as M
+entity "Roteiro" as R
+entity "Ponto" as P
+entity "Parametro" as V
+entity "Auditoria" as L
+A -- T
+T -- C1
+C1 -- M
+C1 -- C2
+C1 -- C3
+C2 -- M
+C2 -- V
+C2 -- R
+C2 -- P
+C2 -- L
+C3 -- R
+note bottom of C2
+  Grava roteiro e todos os pontos em uma transação.
+  Sequência 1..N com pelo menos 2 pontos.
+  Snapshot de combustível, rendimento e jornada.
+end note
+@enduml

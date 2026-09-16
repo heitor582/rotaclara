@@ -1,0 +1,783 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102b36"><title>Documentação do trabalho · RotaClara</title><link rel="icon" href="/icon.svg"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/docs.css"><script src="/docs.js" defer></script></head><body class="docs-page"><header class="docs-top"><a class="brand" href="/"><span class="brand-icon">r.</span>rota<span>clara</span></a><a class="secondary" href="/">Voltar ao aplicativo ↗</a></header><main class="docs-main"><div class="docs-intro"><div class="eyebrow">ENGENHARIA DE SOFTWARE II · TRABALHO 2</div><h1>Documentação do trabalho</h1><p>Casos de uso, diagramas e materiais da RotaClara, reunidos para consulta e apresentação.</p><div class="docs-meta"><span>1ª parte · Projeto preliminar</span><span>2ª parte · Interface e interação</span><span>3ª parte · Persistência</span></div></div><nav class="docs-toc" aria-label="Seções da documentação"><a href="#preliminar">Projeto preliminar</a><a href="#detalhado">Projeto detalhado</a><a href="#persistencia">Persistência</a><a href="#campanha-marketing">Campanha de marketing</a><a href="#apoio">Operação e testes</a></nav><p class="docs-notice">Os diagramas são gerados pelo serviço PlantUML e precisam de internet. Clique na imagem para ampliar. Os documentos e códigos-fonte ficam disponíveis nesta página.</p><section class="docs-section" id="preliminar"><div class="section-heading"><span>01</span><div><h2>Projeto preliminar</h2><p>Especificação dos casos de uso, classes conceituais e diagramas de robustez.</p></div></div><details class="doc-document"><summary><span><strong>Especificação completa dos casos de uso</strong><small>Pré-condições, fluxos principais, alternativas, pós-condições e rastreabilidade.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/01-projeto-preliminar.md" download>Baixar original .md ↓</a><h2>RotaClara — Projeto preliminar</h2>
+<p>Engenharia de Software II · Trabalho 2 · Prof. Sandro Laudares</p>
+<p>Equipe: preencher os nomes e matrículas dos dois ou três integrantes antes da entrega.</p>
+<h3>1. Visão do produto</h3>
+<p>O RotaClara é um MVP web para registrar as esperas em pontos de entrega, relacioná-las a endereços e apresentar indicadores de tempo e combustível. Motoristas registram chegada e saída; gerentes analisam sua equipe; administradores gerenciam todos os cadastros.</p>
+<p>A referência normativa do projeto é “Especificação de Requisitos — Trabalho2.pdf”, fornecida pelo professor, páginas 1–5. O texto de etapas fornecido pelo aluno organiza a execução e complementa a campanha. Em conflito, as regras explícitas do PDF foram preservadas. As duas fotos do quadro da aula de 15/09, enviadas pelo aluno, esclarecem a organização em três partes: 1ª projeto preliminar; 2ª projeto de interface e interação; 3ª projeto de persistência. O material está organizado conforme essa divisão. O quadro também menciona projeto detalhado com tecnologias, componentes, implantação, classes detalhadas e objetos, incluídos como complemento.</p>
+<h3>2. Escopo e decisões</h3>
+<p>Inclui RF01–RF12: cadastros, pontos com coordenadas, montagem sequencial de roteiros, coleta, cálculo, histórico, dashboard, parâmetros, estimativa de combustível e exportação. Não inclui otimização automática, ERP/folha, rastreamento veicular em tempo real ou aplicativo nativo de loja.</p>
+<ul><li>Stack: Python 3.10+, API HTTP, SQLite, HTML/CSS/JavaScript e Chart.js 4.4.8 por CDN. A aplicação não depende de framework. Os cálculos e a autorização ficam no servidor.</li><li>Ponto significa uma visita em um roteiro. Repetir um endereço em outro dia cria outro ponto, preservando os horários históricos.</li><li>Cada roteiro tem exatamente um motorista, uma data e pelo menos dois pontos. O MVP adota um roteiro por motorista/dia, decisão adicional que evita duplicar a jornada no dashboard; não é uma restrição textual de RN05.</li><li>Coordenadas são informadas manualmente; não há geocodificação nem cálculo automático de distância. A distância total é informada pelo responsável.</li><li>Jornada começa com 8 horas, mas pode ser configurada. RN01–RN03 são invariantes: não é permitido incluir a partida ou alterar a fórmula para contrariar a especificação.</li><li>Custo por km = combustível por litro ÷ rendimento. É derivado e não uma segunda cobrança. Custo do roteiro = distância × custo por km. Não representa mão de obra, manutenção, pedágios nem combustível consumido em marcha lenta.</li><li>O rendimento específico do motorista/veículo prevalece sobre o padrão. O padrão preenche novos cadastros. Combustível, rendimento e jornada são copiados para cada roteiro na criação.</li><li>Coleta usa relógio do servidor. Correções permitem horários manuais, exigem motivo e deixam auditoria. Dados são armazenados em UTC e exibidos no fuso America/Sao_Paulo.</li><li>Chegada pertence à data do roteiro; saída pode atravessar a meia-noite. O tempo inteiro da visita é atribuído à data do roteiro, sem rateio diário. Não se aceitam horários futuros, sobreposição com pontos adjacentes ou saída sem chegada.</li><li>Paradas abertas têm contador indicativo na tela, mas entram nos totais apenas após a saída. Percentuais podem superar 100%; não são truncados para ocultar jornadas excedidas.</li><li>A jornada agregada é a soma das jornadas de motoristas/dias com roteiro, incluindo planejados. Dias sem roteiro não entram na base. A medida é uma razão ponderada, não a média simples dos percentuais.</li></ul>
+<h3>3. Atores e permissões</h3>
+<div class="table-wrap"><table><thead><tr><th>Ação</th><th>Motorista</th><th>Gerente</th><th>Administrador</th></tr></thead><tbody><tr><td>Consultar roteiros, dashboard e histórico</td><td>Próprios</td><td>Equipe</td><td>Todos</td></tr><tr><td>Montar/iniciar roteiro e coletar horários</td><td>Próprios</td><td>Equipe</td><td>Todos</td></tr><tr><td>Cadastrar motoristas</td><td>Não</td><td>Própria equipe</td><td>Qualquer equipe</td></tr><tr><td>Cadastrar gerentes</td><td>Não</td><td>Não</td><td>Sim</td></tr><tr><td>Alterar parâmetros globais</td><td>Não</td><td>Sim</td><td>Sim</td></tr><tr><td>Corrigir pontos e consultar auditoria</td><td>Não</td><td>Equipe</td><td>Todos</td></tr><tr><td>Exportar histórico</td><td>Próprio</td><td>Equipe</td><td>Todos</td></tr></tbody></table></div>
+<p>Autenticação é precondição dos casos UC01–UC07. Todas as permissões são verificadas na API; esconder um botão não é o mecanismo de segurança.</p>
+<h3>4. Casos de uso detalhados</h3>
+<h4>UC01 — Montar e iniciar roteiro diário</h4>
+<p><strong>Atores:</strong> motorista; gerente/coordenador; administrador. <strong>Objetivo:</strong> criar o trajeto de uma data e habilitar a coleta. <strong>Requisitos:</strong> RF03, RF04, RN05, RN06.</p>
+<p><strong>Pré-condições:</strong> sessão válida; motorista cadastrado e acessível ao ator; parâmetros disponíveis. Para montar, mínimo de partida e destino. Para iniciar, roteiro planejado na data atual de Brasília.</p>
+<p><strong>Fluxo principal:</strong></p>
+<ol><li>Ator abre Roteiros e coleta e escolhe Montar novo roteiro.</li><li>Seleciona motorista, data e informa distância total não negativa.</li><li>Insere endereços e coordenadas na sequência do trajeto, começando pela partida.</li><li>Sistema valida autorização, motorista, data, coordenadas, quantidade e unicidade motorista/data.</li><li>Sistema cria o roteiro planejado, copia parâmetros e grava pontos numerados de 1 a N em uma transação.</li><li>Ator seleciona Iniciar roteiro na data planejada.</li><li>Sistema confirma o estado e altera para em andamento, habilitando a primeira chegada.</li></ol>
+<p><strong>Alternativas e exceções:</strong> A1: motorista autenticado só monta para si; gerente só seleciona a própria equipe. A2: novo ponto é acrescentado antes de salvar; remover um ponto renumera os restantes. E1: data/motorista duplicados retornam conflito sem gravação parcial. E2: menos de dois pontos, endereço vazio, coordenadas inválidas ou distância negativa impedem salvar. E3: iniciar fora da data ou iniciar novamente é rejeitado. E4: falha de persistência desfaz a transação; tela permite tentar novamente.</p>
+<p><strong>Pós-condições de sucesso:</strong> roteiro e pontos persistidos; parâmetros históricos preservados; criação dos pontos auditada; início deixa o roteiro em andamento. <strong>Pós-condição de falha:</strong> banco conserva o estado anterior.</p>
+<h4>UC02 — Registrar chegada e saída no ponto</h4>
+<p><strong>Atores:</strong> motorista; gerente; administrador. <strong>Objetivo:</strong> medir uma parada vinculada a endereço e horários. <strong>Requisitos:</strong> RF05, RF06, RN01–RN03, RN06, RNF05.</p>
+<p><strong>Pré-condições:</strong> sessão autorizada; roteiro em andamento; todos os pontos anteriores com saída registrada. Para saída, chegada já registrada no ponto.</p>
+<p><strong>Fluxo principal:</strong></p>
+<ol><li>Ator abre o roteiro e identifica o próximo ponto pela ordem sequencial.</li><li>Aciona Registrar chegada.</li><li>Sistema valida perfil, roteiro, sequência e ausência de registro duplicado; grava horário UTC do servidor e auditoria.</li><li>Tela inicia contador indicativo; no ponto 1 mostra que a partida não acumula tempo.</li><li>Ator aciona Registrar saída.</li><li>Sistema valida chegada existente e cronologia; grava horário de saída.</li><li>Sistema calcula zero para ponto 1; para os demais, diferença saída − chegada em minutos.</li><li>Sistema recalcula soma do roteiro, grava auditoria e persiste tudo na mesma transação.</li><li>Se todos os pontos possuem saída, sistema conclui o roteiro; caso contrário habilita o próximo ponto.</li></ol>
+<p><strong>Alternativas e exceções:</strong> A1: ponto 1 mantém horários mas tempo zero. A2: enquanto falta saída, contador é apenas visual, total persistido ainda zero. A3: erro humano é corrigido por UC07, sem sobrescrita silenciosa pelo motorista. E1: saída sem chegada, repetição ou ponto anterior pendente é rejeitado. E2: horário futuro ou cronologia incompatível é rejeitado. E3: sem conexão, tela informa erro e não confirma coleta; não existe fila offline.</p>
+<p><strong>Pós-condições de sucesso:</strong> visita, total do roteiro e auditoria consistentes. <strong>Pós-condição de falha:</strong> sem gravação parcial e sem avanço indevido na sequência.</p>
+<h4>UC03 — Visualizar dashboard de tempo parado</h4>
+<p><strong>Atores:</strong> gerente; administrador; motorista para os próprios dados. <strong>Requisitos:</strong> RF07, RF08, RN04, RNF03, RNF04.</p>
+<p><strong>Pré-condições:</strong> sessão válida. Pode haver zero roteiros no intervalo.</p>
+<p><strong>Fluxo principal:</strong></p>
+<ol><li>Ator escolhe Dia, Mês ou Período e opcionalmente um motorista autorizado.</li><li>Informa a data, mês ou limites inclusivos e aplica os filtros.</li><li>Sistema valida datas e escopo de acesso, consultando roteiros pela data e pontos relacionados.</li><li>Soma tempo parado e custo estimado; calcula a base de jornada histórica por motorista/data.</li><li>Calcula percentual = tempo parado total ÷ base em minutos × 100.</li><li>Exibe KPIs, gráfico de barras diário versus jornada somada, distribuição por endereço e tabela de roteiros.</li><li>Ator consulta histórico para investigar os endereços com maior espera.</li></ol>
+<p><strong>Alternativas e exceções:</strong> A1: mês é convertido do primeiro ao último dia. A2: sem roteiros, métricas zero e estado vazio. A3: sem Chart.js/internet, gráficos nativos e tabela mantêm informação acessível. A4: múltiplos motoristas somam jornadas; dois motoristas com 8 h têm base 960 min no dia. E1: fim anterior ao início é rejeitado. E2: filtro de motorista fora da equipe não revela dados. A5: paradas abertas não entram nos totais; planejados entram na base e na estimativa de combustível, conforme legenda.</p>
+<p><strong>Pós-condições:</strong> indicadores coerentes com período e perfil; nenhum dado operacional alterado.</p>
+<h4>UC04 — Parametrizar custos e regras</h4>
+<p><strong>Atores:</strong> gerente; administrador. <strong>Requisitos:</strong> RF09, RF10, RF11, RN04, RN07.</p>
+<p><strong>Pré-condições:</strong> sessão com perfil permitido; registro singleton de parâmetros existente.</p>
+<p><strong>Fluxo principal:</strong></p>
+<ol><li>Ator abre Parâmetros.</li><li>Sistema apresenta combustível por litro, rendimento padrão, custo derivado por km, jornada e regras fixas.</li><li>Ator altera preço, rendimento padrão e/ou jornada.</li><li>Sistema exige valores finitos, combustível não negativo, rendimento positivo e jornada entre zero exclusivo e 24 h.</li><li>Calcula custo por km e salva parâmetros com auditoria.</li><li>Novos roteiros copiam os novos valores e usam o rendimento do motorista/veículo.</li></ol>
+<p><strong>Alternativas e exceções:</strong> A1: jornada inicial é 8 h; valores fracionários são permitidos. A2: roteiros antigos mantêm snapshots. A3: não há ajuste independente de custo/km porque ele deriva da RN07. E1: motorista recebe acesso negado na API. E2: zero no rendimento, NaN, infinito ou jornada fora do limite não são gravados. A4: exclusão da partida e fórmula de diferença são exibidas como invariantes, evitando parametrização incompatível com RN01 e RN02.</p>
+<p><strong>Pós-condições:</strong> parâmetros consistentes para futuras criações, histórico preservado e alteração auditada.</p>
+<h4>UC05 — Cadastrar equipe</h4>
+<p><strong>Atores:</strong> administrador cadastra gerente e motorista; gerente cadastra motorista na própria equipe. <strong>Pré-condições:</strong> sessão autorizada; gerente existente para vincular motorista. <strong>Requisitos:</strong> RF01, RF02.</p>
+<p><strong>Fluxo:</strong> informar nome, telefone e dados do perfil (e-mail do gerente; documento, veículo e rendimento do motorista); definir usuário e senha inicial com mínimo de 10 caracteres; validar duplicidade; persistir pessoa e conta atomicamente. <strong>Exceções:</strong> login/documento/e-mail duplicado, vínculo inválido e campos ausentes não geram registros parciais. <strong>Pós-condições:</strong> pessoa e conta com perfil criadas. Manutenção/exclusão completa de contas não faz parte desta versão.</p>
+<h4>UC06 — Consultar e exportar histórico</h4>
+<p><strong>Atores:</strong> todos dentro de seu escopo. <strong>Pré-condições:</strong> sessão válida. <strong>Requisitos:</strong> RF07, RF12.</p>
+<p><strong>Fluxo:</strong> escolher período e motorista; consultar pontos; buscar endereço ou nome; exportar CSV ou abrir impressão para salvar PDF. CSV e impressão usam o mesmo período, motorista e busca. A tabela apresenta data do roteiro, endereço, chegada, saída e minutos. <strong>Alternativas:</strong> nenhum resultado mostra estado vazio; ponto aberto é identificado; partida aparece com zero. <strong>Segurança:</strong> texto potencialmente interpretado como fórmula recebe prefixo de proteção no CSV. <strong>Pós-condições:</strong> arquivo CSV baixado ou diálogo de impressão aberto; o usuário seleciona Salvar em PDF no navegador.</p>
+<h4>UC07 — Corrigir ponto com auditoria</h4>
+<p><strong>Atores:</strong> gerente; administrador. <strong>Pré-condições:</strong> acesso ao roteiro e motivo obrigatório. <strong>Requisitos:</strong> RNF05.</p>
+<p><strong>Fluxo:</strong> abrir correção no histórico ou coleta; revisar endereço, coordenadas e horários; informar motivo; servidor normaliza horários UTC, valida cronologia, vizinhos e data; atualiza ponto, recalcula roteiro e registra antes/depois, usuário e instante na mesma transação. <strong>Exceções:</strong> motorista não pode corrigir; motivo vazio, sobreposição, horário futuro, saída anterior à chegada ou remoção de saída necessária ao próximo ponto são rejeitados. <strong>Pós-condições:</strong> histórico corrigido e rastreável. Registros de auditoria não aceitam UPDATE/DELETE pela aplicação nem diretamente pelas operações SQL usuais, devido a triggers; acesso administrativo ao arquivo ainda exige governança.</p>
+<h4>UC08 — Autenticar e encerrar sessão</h4>
+<p><strong>Atores:</strong> todos. <strong>Fluxo:</strong> informar usuário/senha; verificar hash PBKDF2; criar token aleatório com validade de 8 h e cookie HttpOnly/SameSite; nas requisições seguintes validar sessão e perfil; ao sair revogar token no banco. <strong>Exceções:</strong> credenciais incorretas não identificam qual campo falhou; dez falhas em cinco minutos por origem limitam novas tentativas. <strong>Pós-condições:</strong> sessão válida ou revogada. Não há recuperação de senha por e-mail no MVP.</p>
+<h3>5. Modelos UML</h3>
+<p>Fontes PlantUML editáveis em docs/diagramas:</p>
+<ul><li>casos-de-uso.puml: visão geral dos atores e permissões.</li><li>classes-conceitual.puml: entidades de domínio, multiplicidades e atributos.</li><li>robustez-uc01.puml a robustez-uc04.puml: fronteiras, controles e entidades dos quatro fluxos principais.</li><li>modelo-relacional.puml: complemento técnico com usuário, sessão e auditoria.</li><li>componentes.puml e implantacao.puml: arquitetura física do MVP.</li><li>classes-detalhadas.puml e objetos.puml: estrutura lógica efetiva e exemplo do roteiro A.</li></ul>
+<p>Os diagramas de robustez usam actor, boundary, control e entity do PlantUML. Atores interagem com fronteiras; fronteiras com controles; controles com entidades e outros controles. Não há ligação direta de ator a entidade. No modelo conceitual, atributos com / são derivados.</p>
+<h3>6. Rastreabilidade</h3>
+<div class="table-wrap"><table><thead><tr><th>Requisito</th><th>Implementação / evidência</th></tr></thead><tbody><tr><td>RF01, RF02</td><td>Equipe; API motoristas/gerentes; UC05</td></tr><tr><td>RF03, RF04</td><td>Novo roteiro; coordenadas e ordem; UC01</td></tr><tr><td>RF05, RF06</td><td>Coleta; business.py; UC02</td></tr><tr><td>RF07, RF12</td><td>Histórico, busca, CSV e impressão PDF; UC06</td></tr><tr><td>RF08</td><td>Dia/mês/período; Chart.js e fallback nativo; UC03</td></tr><tr><td>RF09–RF11</td><td>Parâmetros, snapshot e custo; UC04</td></tr><tr><td>RN01–RN03</td><td>Funções de tempo e testes com A=75, B=41, C=45 min</td></tr><tr><td>RN04</td><td>Jornada padrão 8 h; percentual ponderado; teste 75/480=15,625%</td></tr><tr><td>RN05, RN06</td><td>FK motorista, data, UNIQUE motorista/data e roteiro/ordem</td></tr><tr><td>RN07</td><td>distância × combustível / rendimento; teste 100×6/10=60</td></tr><tr><td>RNF01</td><td>SQLite, transações e schema.sql com FKs e índices</td></tr><tr><td>RNF02</td><td>CSS responsivo, botões de 44 px, labels e navegação por teclado</td></tr><tr><td>RNF03</td><td>Índice de data, consultas delimitadas e benchmark sintético de 12 meses</td></tr><tr><td>RNF04</td><td>Sessão, autorização no servidor e teste de isolamento</td></tr><tr><td>RNF05</td><td>Tabela de auditoria, antes/depois/motivo e triggers imutáveis</td></tr><tr><td>RNF06</td><td>Minimização, restrição de acesso e plano de tratamento em 02-operacao-e-privacidade.md; conformidade integral depende da implantação</td></tr></tbody></table></div>
+<h3>7. Plano de validação e limites</h3>
+<p>Testes automatizados verificam fórmulas, validação, persistência, autenticação, permissões, coleta, correção, auditoria e exportação. O benchmark mede consulta e agregação de 12 meses em base sintética; não é garantia de desempenho de qualquer máquina ou rede. A verificação manual cobre desktop/mobile, filtros, formulários, estados vazios e impressão.</p>
+<p>O servidor padrão escuta apenas 127.0.0.1. O MVP é adequado à execução e demonstração local, não é um serviço pronto para produção. Em produção são necessários HTTPS, servidor apropriado, gerenciamento de contas/senhas, política de retenção, rotinas de backup e processos organizacionais de proteção de dados.</p></div></details><article class="diagram-card" id="casos-de-uso"><div class="diagram-heading"><div><h3>Casos de uso</h3><p>Atores, funcionalidades e permissões.</p></div><a class="download" href="/documentacao/arquivos/casos-de-uso.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/PLCxRjn03Etd58Hxsyd-YnGsjaXbmB2HJWqpGsidbeOAPmGuYGta4Bb1wbG-mjua9mbdBIahRIFeaNppIBwPgvXGKbjNfgA718b1VBbBuBoGJPw3YOy-D2XOGuFs4KkwJzygWfp6K5Paaa-AxpZXjj8w-Flp5smnSWH7q4OsQ1CBtB1-lSfr-2C9XKGTkdQr3veLT2ocoy67v_FpIMhGFLByOLI7B4Q2iq_RT--BSCD1vm82PLglVyA9lF0PO8HSCcRCYd17vK53mEweH8UN4VT_7FQCsPWnByAMGsohBECmxZupYkkBv-FYHH5kymOfYV-U5TgOT3q4NrW2_jTOZ6bBrT3iMrVqjVKDzPNBSUNgg9jBUcfOSbix7MZ_AjuEOw_6j7McYHhk1HhT68Fb6h1rFbirjBKUipP5k6wJ-kFjOSKKB4bkCLAC-z-3sCQycC5qK2CFUvz6PYUH-KbaTHBP35UaFtUCPnCyd-3512ydU3N1wmdUcA0Ngdih_D1P0lTS7uhm-Cg2xKo4yksCUA6b_Nb3ikv7r7U3qCZ-jL4FEjyl30K7MTDSwLz-h_y0" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Casos de uso"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/PLCxRjn03Etd58Hxsyd-YnGsjaXbmB2HJWqpGsidbeOAPmGuYGta4Bb1wbG-mjua9mbdBIahRIFeaNppIBwPgvXGKbjNfgA718b1VBbBuBoGJPw3YOy-D2XOGuFs4KkwJzygWfp6K5Paaa-AxpZXjj8w-Flp5smnSWH7q4OsQ1CBtB1-lSfr-2C9XKGTkdQr3veLT2ocoy67v_FpIMhGFLByOLI7B4Q2iq_RT--BSCD1vm82PLglVyA9lF0PO8HSCcRCYd17vK53mEweH8UN4VT_7FQCsPWnByAMGsohBECmxZupYkkBv-FYHH5kymOfYV-U5TgOT3q4NrW2_jTOZ6bBrT3iMrVqjVKDzPNBSUNgg9jBUcfOSbix7MZ_AjuEOw_6j7McYHhk1HhT68Fb6h1rFbirjBKUipP5k6wJ-kFjOSKKB4bkCLAC-z-3sCQycC5qK2CFUvz6PYUH-KbaTHBP35UaFtUCPnCyd-3512ydU3N1wmdUcA0Ngdih_D1P0lTS7uhm-Cg2xKo4yksCUA6b_Nb3ikv7r7U3qCZ-jL4FEjyl30K7MTDSwLz-h_y0" alt="Diagrama PlantUML: Casos de uso"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+left to right direction
+skinparam packageStyle rectangle
+title RotaClara — Casos de uso
+actor Motorista
+actor Gerente
+actor Administrador
+Gerente &lt;|-- Administrador
+rectangle RotaClara {
+ usecase &quot;UC01\nMontar e iniciar roteiro&quot; as UC01
+ usecase &quot;UC02\nRegistrar chegada/saída&quot; as UC02
+ usecase &quot;UC03\nConsultar dashboard&quot; as UC03
+ usecase &quot;UC04\nParametrizar custos e jornada&quot; as UC04
+ usecase &quot;UC05\nCadastrar equipe&quot; as UC05
+ usecase &quot;UC06\nConsultar/exportar histórico&quot; as UC06
+ usecase &quot;UC07\nCorrigir ponto com auditoria&quot; as UC07
+ usecase &quot;UC08\nAutenticar e encerrar sessão&quot; as UC08
+}
+Motorista -- UC01
+Motorista -- UC02
+Motorista -- UC03
+Motorista -- UC06
+Motorista -- UC08
+Gerente -- UC01
+Gerente -- UC02
+Gerente -- UC03
+Gerente -- UC04
+Gerente -- UC05
+Gerente -- UC06
+Gerente -- UC07
+Gerente -- UC08
+note right of UC05
+  Somente administrador cadastra gerentes.
+  Gerente cadastra motoristas da própria equipe.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="classes-conceitual"><div class="diagram-heading"><div><h3>Classes conceituais</h3><p>Entidades do domínio, atributos e multiplicidades.</p></div><a class="download" href="/documentacao/arquivos/classes-conceitual.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/dLNDSXj54BxhAHfpIs7PiXE7MWegji3W0bEg99KBnM6qsvO6xsmlCxF25Oggl0EyGE2Goi4d7c7V94_2rxChxIR67D11fUcVR_hxkdlq94JZO-FAoKTnpOwfBesj9k7QLhNnnb5UcX1EO_HssKI-oALwPbyo7Ov2bYQ_Ndbfgc8kfNZw-3nzHX6dtiillNDsylZXeuSVtd1s1-Fu_EJyyPqmyGNxBTBXqTdnoIJQM38zbMZc9IBftQi_QAx170ZbvcnZOsoO903wcZrNaUdN2P4jCheeSBHNDZU5UDWgSPpHSxw9WbFaag-a6bdO6LjkZx_re9SInLj8-RzX2yaRXnGPJ1ksULEE3DTk8Vux6priNt9kdIbt5O0-Mo_ttb-OQ925RpregLLkpNE8LWvWH0UHNIt9l82M1Mwwj5KJ9QWpRqAKhq94SF885me7iDY4ZE21lQz42HYqQIvkYJIxuVAqBbCzGoPQKTX4U_0DnVmalZA5wLqe_nln9kmeBmHvzn86CZgTZ-Gh3IQbANXyHIdLweunN_CgtQTowPtqm-5qEljHgHhxxuvEk4wpNh4nf8wjUyO_DwooG_ABgbDfHqPdd6FVmG-L6nGRPc1X2c_Uqwlh3_pVkY6X5x6BJWBkKkXp-bILkidBndfK41EvCv6IJILmRzWNfkZRwNdbpToKew54I5BaaYi9yqusKDhksDviZ_RtQGyYFTWRBKb6eQdPRsomKXdwOZAuta_PJdM68ZbleiPkRHhvG4EFKcWt3PbkV6pVEknf9peo1ctlGx-2I9npfpkU3LjPjCa695S88czNwqXoHSDmF_t-y556ZIEtgvrnD6dJfWXGaKFxbs2rwVB58iCJGAvzVMETQ9hV8TLuotOW1uKrdy5KC9depOP3C72pDVkLsCYA33xjducGFd2rnSW5gb4t9CL3ARG6KlktjxbC9zW3KWuTaQN4A4wP9Bqw7hEibsg6XybHccHwoLwcdVyewstQxVQsCBI_tP4-uXWH-cPG42XGAtGW_D2HyYh0KQexjQXzcsJIvaCpZ474JgHnCIDTFj4tKzM3gLlbzes0hKkOvHgSoJMnVOtj-0-Isyu3RQxBSN3jm2BlDgkzHJ8TZ5uXhV85jxSwubhsq5l8Y-7G6Gcoz0oHQsmK2kmLcBrxzRiAGQdbjjeORmr81Sm3SQWn3FesjMzIogxU9_YbVxx_0000" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Classes conceituais"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/dLNDSXj54BxhAHfpIs7PiXE7MWegji3W0bEg99KBnM6qsvO6xsmlCxF25Oggl0EyGE2Goi4d7c7V94_2rxChxIR67D11fUcVR_hxkdlq94JZO-FAoKTnpOwfBesj9k7QLhNnnb5UcX1EO_HssKI-oALwPbyo7Ov2bYQ_Ndbfgc8kfNZw-3nzHX6dtiillNDsylZXeuSVtd1s1-Fu_EJyyPqmyGNxBTBXqTdnoIJQM38zbMZc9IBftQi_QAx170ZbvcnZOsoO903wcZrNaUdN2P4jCheeSBHNDZU5UDWgSPpHSxw9WbFaag-a6bdO6LjkZx_re9SInLj8-RzX2yaRXnGPJ1ksULEE3DTk8Vux6priNt9kdIbt5O0-Mo_ttb-OQ925RpregLLkpNE8LWvWH0UHNIt9l82M1Mwwj5KJ9QWpRqAKhq94SF885me7iDY4ZE21lQz42HYqQIvkYJIxuVAqBbCzGoPQKTX4U_0DnVmalZA5wLqe_nln9kmeBmHvzn86CZgTZ-Gh3IQbANXyHIdLweunN_CgtQTowPtqm-5qEljHgHhxxuvEk4wpNh4nf8wjUyO_DwooG_ABgbDfHqPdd6FVmG-L6nGRPc1X2c_Uqwlh3_pVkY6X5x6BJWBkKkXp-bILkidBndfK41EvCv6IJILmRzWNfkZRwNdbpToKew54I5BaaYi9yqusKDhksDviZ_RtQGyYFTWRBKb6eQdPRsomKXdwOZAuta_PJdM68ZbleiPkRHhvG4EFKcWt3PbkV6pVEknf9peo1ctlGx-2I9npfpkU3LjPjCa695S88czNwqXoHSDmF_t-y556ZIEtgvrnD6dJfWXGaKFxbs2rwVB58iCJGAvzVMETQ9hV8TLuotOW1uKrdy5KC9depOP3C72pDVkLsCYA33xjducGFd2rnSW5gb4t9CL3ARG6KlktjxbC9zW3KWuTaQN4A4wP9Bqw7hEibsg6XybHccHwoLwcdVyewstQxVQsCBI_tP4-uXWH-cPG42XGAtGW_D2HyYh0KQexjQXzcsJIvaCpZ474JgHnCIDTFj4tKzM3gLlbzes0hKkOvHgSoJMnVOtj-0-Isyu3RQxBSN3jm2BlDgkzHJ8TZ5uXhV85jxSwubhsq5l8Y-7G6Gcoz0oHQsmK2kmLcBrxzRiAGQdbjjeORmr81Sm3SQWn3FesjMzIogxU9_YbVxx_0000" alt="Diagrama PlantUML: Classes conceituais"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #167454
+skinparam classBackgroundColor #F3F6F7
+skinparam classBorderColor #102B36
+title RotaClara — Classes conceituais
+class Gerente {
+  id: Identificador
+  nome: Texto
+  telefone: Texto
+  email: Texto
+}
+class Motorista {
+  id: Identificador
+  nome: Texto
+  telefone: Texto
+  documento: Texto
+  veiculo: Texto
+  kmPorLitro: Decimal
+}
+class Roteiro {
+  id: Identificador
+  data: Data
+  distanciaTotal: Decimal
+  /tempoTotalParado: Minutos
+  /custoEstimado: Moeda
+  status: EstadoRoteiro
+  valorCombustivelAplicado: Moeda
+  rendimentoAplicado: Decimal
+  jornadaAplicada: Horas
+}
+class Ponto {
+  id: Identificador
+  endereco: Texto
+  latitude: Decimal
+  longitude: Decimal
+  chegada: DataHora [0..1]
+  saida: DataHora [0..1]
+  /tempoParadoMinutos: Decimal
+  ordemSequencial: Inteiro
+}
+class Parametro {
+  valorCombustivel: Moeda
+  kmPorLitroPadrao: Decimal
+  /custoPorKm: Moeda
+  jornadaPadraoHoras: Decimal = 8
+  excluirPartida: Booleano = verdadeiro
+  regraCalculo: Texto = saidaMenosChegada
+}
+Gerente &quot;1&quot; -- &quot;0..*&quot; Motorista : supervisiona &gt;
+Motorista &quot;1&quot; -- &quot;0..*&quot; Roteiro : executa &gt;
+Roteiro &quot;1&quot; *-- &quot;2..*&quot; Ponto : contém em ordem &gt;
+Parametro &quot;1&quot; -- &quot;0..*&quot; Roteiro : fornece valores iniciais &gt;
+note right of Roteiro
+  RN05: um motorista e uma data.
+  Decisão do MVP: no máximo um roteiro
+  por motorista/dia; pode atravessar meia-noite.
+  Parâmetros copiados preservam o histórico.
+end note
+note bottom of Ponto
+  RN01: ordem 1 tem tempo zero.
+  RN02: tempo = saída - chegada.
+  RN03: total soma pontos a partir do 2.
+  Ponto é uma visita pertencente a um roteiro,
+  não um endereço compartilhado mutável.
+end note
+note bottom of Parametro
+  Custo/km = combustível / rendimento.
+  Veículo do motorista prevalece sobre o padrão.
+  RN01–RN03 são invariantes da especificação.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="robustez-uc01"><div class="diagram-heading"><div><h3>UC01 · Montar e iniciar roteiro</h3><p>Interação entre tela, controles e entidades na criação do roteiro.</p></div><a class="download" href="/documentacao/arquivos/robustez-uc01.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/LL9BJYCn4Dtx5AMi8P3a0hHwWKOYA0ePLhEfj8l1o7O5kpeIhEOGSuDPZ3JId28tuIIKkqq2agLNUgxtwcDVPS4aVV36quE0C2Jtyr70kaITE8v6d7Y2x-tb3Dv-_OObHrK0WOkkSneb5dA93NR22IPBLd3g2XTmJOcYa4QD3PgV9Q7bD07Cq9Wjzz5YUe79XZo2fG-hF2HiJAUb4dkOD7tnVDLYs57EFDotirD2RQhgVyGzUgVMO57m3CAn9G9EbiAedv_qtxxEyjK0K7hqgYMriBNumkXaJbu-3JnSB8_yUlGQsFMHNMd9aLkTE4mOI6hk_P5lUkkAz-XyOneuFzUrR0hezEsi1CkAEauD5gQTrvi1xokkAwugtfXsCV9HMuKjYt00VYXM0DS9z_Yn41rUs786FRioGGOAq0S4VT6OyV3ty8UdghgZv_xmB-eoOJQTtaAdZZlo386YYkPLFQH6tEL7blBmchRjinp-xycVWNuQwrGWfUuJfuWMfxeL2wLHSwLH-R3l" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: UC01 · Montar e iniciar roteiro"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/LL9BJYCn4Dtx5AMi8P3a0hHwWKOYA0ePLhEfj8l1o7O5kpeIhEOGSuDPZ3JId28tuIIKkqq2agLNUgxtwcDVPS4aVV36quE0C2Jtyr70kaITE8v6d7Y2x-tb3Dv-_OObHrK0WOkkSneb5dA93NR22IPBLd3g2XTmJOcYa4QD3PgV9Q7bD07Cq9Wjzz5YUe79XZo2fG-hF2HiJAUb4dkOD7tnVDLYs57EFDotirD2RQhgVyGzUgVMO57m3CAn9G9EbiAedv_qtxxEyjK0K7hqgYMriBNumkXaJbu-3JnSB8_yUlGQsFMHNMd9aLkTE4mOI6hk_P5lUkkAz-XyOneuFzUrR0hezEsi1CkAEauD5gQTrvi1xokkAwugtfXsCV9HMuKjYt00VYXM0DS9z_Yn41rUs786FRioGGOAq0S4VT6OyV3ty8UdghgZv_xmB-eoOJQTtaAdZZlo386YYkPLFQH6tEL7blBmchRjinp-xycVWNuQwrGWfUuJfuWMfxeL2wLHSwLH-R3l" alt="Diagrama PlantUML: UC01 · Montar e iniciar roteiro"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+left to right direction
+title UC01 — Montar e iniciar roteiro
+actor &quot;Motorista / Gerente / Administrador&quot; as A
+boundary &quot;Tela de roteiros&quot; as T
+control &quot;Autorizar acesso&quot; as C1
+control &quot;Montar roteiro\nvalidar data, motorista e ordem&quot; as C2
+control &quot;Iniciar roteiro\nvalidar data atual e estado&quot; as C3
+entity &quot;Motorista&quot; as M
+entity &quot;Roteiro&quot; as R
+entity &quot;Ponto&quot; as P
+entity &quot;Parametro&quot; as V
+entity &quot;Auditoria&quot; as L
+A -- T
+T -- C1
+C1 -- M
+C1 -- C2
+C1 -- C3
+C2 -- M
+C2 -- V
+C2 -- R
+C2 -- P
+C2 -- L
+C3 -- R
+note bottom of C2
+  Grava roteiro e todos os pontos em uma transação.
+  Sequência 1..N com pelo menos 2 pontos.
+  Snapshot de combustível, rendimento e jornada.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="robustez-uc02"><div class="diagram-heading"><div><h3>UC02 · Registrar chegada e saída</h3><p>Validação, cálculo do tempo parado e auditoria.</p></div><a class="download" href="/documentacao/arquivos/robustez-uc02.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/TLEzZXCn4ExtAKQfG2JtHtS8TAijhhbmqNAakcPkFKcCl9uzsujqgNW8AZf4WOHq5O-mRyAJCBQNlGX1ayyxyytdRyQJ2n_GXRurXQ5DWC3Wz7ONG6b7JT1iYw238NXVdPp1hq-VeQQjzi6XWsP7MrHux75uL0W43PgcDv89r7OC7JfKN60JsC5ioG9IYN0Cb-J81f9JgLfjavvYDmFqK1Ptt5k5xW5cDsGGb0YpeO0fVLCqR8DZ0xEoZufxkO_W8nejDRVMSI3jU0wUxllXXsrqTBPZDtnrcfF4-adYVyqaNlN4g_xLsQsjtvwSmWiGEClmCXUMLrKX3UhmSD1tIYsd-4gqiv_L5Akp-HIjfsZPAnqriiBLzMLHmc8XaxY9i2xM4POPwWoh35LHvQy4iJ8Tah_uCoR7KrrOkH_kE0HkWJUP1t3j5BNm6axFOK-EGLvC9k_dq99lMHwddURhZoR-cyX_Dkx6uizyduEaHe78VIUVcNCkknVGG4VEoxYqudJRAmYw9GT--0aMPVu6OrqPUddnFOv5GXuVFfAYByauj2BzVVZ6Hp9B1R6xlrjSYrPD7qZBNevUlLWQtSx1KKT19v6vK0-MIbjfl8jxAVk53NdFi64d-og1-rvt57qENupudxHbeHhJQvZi7ZYxa5Fy7_u6" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: UC02 · Registrar chegada e saída"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/TLEzZXCn4ExtAKQfG2JtHtS8TAijhhbmqNAakcPkFKcCl9uzsujqgNW8AZf4WOHq5O-mRyAJCBQNlGX1ayyxyytdRyQJ2n_GXRurXQ5DWC3Wz7ONG6b7JT1iYw238NXVdPp1hq-VeQQjzi6XWsP7MrHux75uL0W43PgcDv89r7OC7JfKN60JsC5ioG9IYN0Cb-J81f9JgLfjavvYDmFqK1Ptt5k5xW5cDsGGb0YpeO0fVLCqR8DZ0xEoZufxkO_W8nejDRVMSI3jU0wUxllXXsrqTBPZDtnrcfF4-adYVyqaNlN4g_xLsQsjtvwSmWiGEClmCXUMLrKX3UhmSD1tIYsd-4gqiv_L5Akp-HIjfsZPAnqriiBLzMLHmc8XaxY9i2xM4POPwWoh35LHvQy4iJ8Tah_uCoR7KrrOkH_kE0HkWJUP1t3j5BNm6axFOK-EGLvC9k_dq99lMHwddURhZoR-cyX_Dkx6uizyduEaHe78VIUVcNCkknVGG4VEoxYqudJRAmYw9GT--0aMPVu6OrqPUddnFOv5GXuVFfAYByauj2BzVVZ6Hp9B1R6xlrjSYrPD7qZBNevUlLWQtSx1KKT19v6vK0-MIbjfl8jxAVk53NdFi64d-og1-rvt57qENupudxHbeHhJQvZi7ZYxa5Fy7_u6" alt="Diagrama PlantUML: UC02 · Registrar chegada e saída"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+left to right direction
+title UC02 — Registrar chegada/saída e calcular tempo parado
+actor &quot;Motorista / Gerente / Administrador&quot; as A
+boundary &quot;Tela de coleta&quot; as T
+control &quot;Autorizar e validar\nroteiro, sequência e horário&quot; as V
+control &quot;Registrar chegada/saída&quot; as C
+control &quot;Calcular tempo parado\nRN01 + RN02 + RN03&quot; as CALC
+entity &quot;Motorista&quot; as M
+entity &quot;Ponto&quot; as P
+entity &quot;Roteiro&quot; as R
+entity &quot;Auditoria&quot; as LOG
+A -- T
+T -- V
+V -- M
+V -- R
+V -- P
+V -- C
+C -- P
+C -- LOG
+C -- CALC
+CALC -- P
+CALC -- R
+note bottom of CALC
+  Ordem = 1: zero minutos, mesmo com horários.
+  Ordem &gt; 1: (saída - chegada) em minutos.
+  Sem saída: total persistido zero; timer só na tela.
+  Atualiza total do roteiro na mesma transação.
+end note
+note bottom of V
+  Rejeita saída sem chegada, repetição,
+  sequência incompleta e acesso fora da equipe.
+  Última saída conclui o roteiro.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="robustez-uc03"><div class="diagram-heading"><div><h3>UC03 · Consultar dashboard</h3><p>Consulta por período e agregação dos indicadores.</p></div><a class="download" href="/documentacao/arquivos/robustez-uc03.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/JL9BRXin3Dth50zU5lcuwAv0WJWJ82i3XfjwBuzecu56D2YDWMILG-G6tGNegaUOc_GafJomdHKvJ-HxZ-JSvUArz5rqaJO5HQ2ytHK4LceBItA5IoJyQgRVyE_j7Osat4ThGl1vjnQlmVcsY68o5mjiXBZ58ocbGfRDGiV9KFL1T0AVCNDhwLFm-eB9mua4X0t7efAFDK-kbMHV4PDPNsbVJP5my96j4NlIuOy4ETQkBhKNTmI_LTfQnYbmMyLff6wSEUFoyidm4P-VyQKKOXt9bsTqOI8Zjd0pN5-RnwSQLcvLmtmCZMjgM8vXuP9nOIsbI0VPs3FmmFuAtV2H8RsvAwGsbbZMnZxpGH38bbjCo18TlTnOtxtFX1_8qlcwV3oB9X_6CXlGeplDSnlOepN5JzqBqjP6wNqq3Zk9RJLZx-jPiftfX1ZDkkfymTVfjFRzf3FDTxoIoXMoGO4Fd8VVWhsTliArjkbpvQ2BjSFmORM6vUJtUISbOsSEXx_AhUGRMsv0NP6xiwp-Xly1" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: UC03 · Consultar dashboard"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/JL9BRXin3Dth50zU5lcuwAv0WJWJ82i3XfjwBuzecu56D2YDWMILG-G6tGNegaUOc_GafJomdHKvJ-HxZ-JSvUArz5rqaJO5HQ2ytHK4LceBItA5IoJyQgRVyE_j7Osat4ThGl1vjnQlmVcsY68o5mjiXBZ58ocbGfRDGiV9KFL1T0AVCNDhwLFm-eB9mua4X0t7efAFDK-kbMHV4PDPNsbVJP5my96j4NlIuOy4ETQkBhKNTmI_LTfQnYbmMyLff6wSEUFoyidm4P-VyQKKOXt9bsTqOI8Zjd0pN5-RnwSQLcvLmtmCZMjgM8vXuP9nOIsbI0VPs3FmmFuAtV2H8RsvAwGsbbZMnZxpGH38bbjCo18TlTnOtxtFX1_8qlcwV3oB9X_6CXlGeplDSnlOepN5JzqBqjP6wNqq3Zk9RJLZx-jPiftfX1ZDkkfymTVfjFRzf3FDTxoIoXMoGO4Fd8VVWhsTliArjkbpvQ2BjSFmORM6vUJtUISbOsSEXx_AhUGRMsv0NP6xiwp-Xly1" alt="Diagrama PlantUML: UC03 · Consultar dashboard"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+left to right direction
+title UC03 — Consultar dashboard
+actor &quot;Motorista / Gerente / Administrador&quot; as A
+boundary &quot;Dashboard e filtros&quot; as T
+control &quot;Autorizar e validar período&quot; as V
+control &quot;Consultar e agregar indicadores&quot; as C
+entity &quot;Motorista&quot; as M
+entity &quot;Roteiro&quot; as R
+entity &quot;Ponto&quot; as P
+A -- T
+T -- V
+V -- M
+V -- C
+C -- R
+C -- P
+note bottom of C
+  Dia, mês ou intervalo inclusivo de datas de roteiro.
+  Base = soma das jornadas de cada motorista/dia com roteiro.
+  Percentual = minutos parados / minutos da base * 100.
+  Sem roteiro: zero, sem divisão por zero.
+  Custos e jornadas vêm dos snapshots históricos.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="robustez-uc04"><div class="diagram-heading"><div><h3>UC04 · Parametrizar custos e jornada</h3><p>Configuração dos valores aplicados a novos roteiros.</p></div><a class="download" href="/documentacao/arquivos/robustez-uc04.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/NP8xJWGn38RxdEBNrZmMHCT3Evg21j0ABTjx9ra8937AU4Q2YaDm0YWG1HL7c9jm4fn1F4Jb-17xzvVCMg4iNGmckBL06DbVNWcipwuHpyc8b-1mKK_tyF7mY3bbYawolwUCfck5MpXSSqvaoL0Zd34vTjabSTX6PQDFlfLCblC4rA8oA-wIfNo7oS85WdMufJmybQxSZZKBqt1IBs1ITTfn77Rhyjg7CR_ypIyfU6sc6beAVIdxrwisAiMBJlkMpcDy_XElEklB41hZ9wR2vgPAM1IpDCjYQbCNC_yo9oQnRhTY4OxWjQQ1ckDASGnllGiuEiHq7mh1-gXZ64V5d-BWcnGE3h6xjrNk5ORRDn73gwB8lbTI6qZ3CwFbg0uIznH7diHe_emfrqyxIsbu8VGKHf1KwlLHiahq2g4KdPzDTvIGcjs2CL9oZLFbAtriak5TTzSwLOkoc9dfgNo9Jm00" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: UC04 · Parametrizar custos e jornada"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/NP8xJWGn38RxdEBNrZmMHCT3Evg21j0ABTjx9ra8937AU4Q2YaDm0YWG1HL7c9jm4fn1F4Jb-17xzvVCMg4iNGmckBL06DbVNWcipwuHpyc8b-1mKK_tyF7mY3bbYawolwUCfck5MpXSSqvaoL0Zd34vTjabSTX6PQDFlfLCblC4rA8oA-wIfNo7oS85WdMufJmybQxSZZKBqt1IBs1ITTfn77Rhyjg7CR_ypIyfU6sc6beAVIdxrwisAiMBJlkMpcDy_XElEklB41hZ9wR2vgPAM1IpDCjYQbCNC_yo9oQnRhTY4OxWjQQ1ckDASGnllGiuEiHq7mh1-gXZ64V5d-BWcnGE3h6xjrNk5ORRDn73gwB8lbTI6qZ3CwFbg0uIznH7diHe_emfrqyxIsbu8VGKHf1KwlLHiahq2g4KdPzDTvIGcjs2CL9oZLFbAtriak5TTzSwLOkoc9dfgNo9Jm00" alt="Diagrama PlantUML: UC04 · Parametrizar custos e jornada"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+left to right direction
+title UC04 — Parametrizar custos e jornada
+actor &quot;Gerente / Administrador&quot; as A
+boundary &quot;Tela de parâmetros&quot; as T
+control &quot;Autorizar perfil&quot; as V
+control &quot;Validar e salvar parâmetros&quot; as C
+entity &quot;Parametro&quot; as P
+entity &quot;Auditoria&quot; as L
+A -- T
+T -- V
+V -- C
+C -- P
+C -- L
+note bottom of C
+  Combustível &gt;= 0; rendimento &gt; 0; 0 &lt; jornada &lt;= 24.
+  Custo/km é derivado, não somado novamente ao combustível.
+  Mudança vale para novos roteiros.
+  RN01 e RN02 permanecem obrigatórias.
+end note
+@enduml
+</code></pre></details></article></section><section class="docs-section" id="detalhado"><div class="section-heading"><span>02</span><div><h2>Projeto detalhado</h2><p>Tecnologias e modelos de arquitetura física e lógica citados no quadro.</p></div></div><div class="note"><b>Interface e interação — 2ª parte da entrega:</b> o aplicativo reúne coleta, dashboard, histórico, equipe, parâmetros e auditoria. <a href="/">Abrir o MVP →</a><br>Os diagramas abaixo complementam o projeto conforme os itens de arquitetura escritos no quadro.</div><article class="diagram-card" id="componentes"><div class="diagram-heading"><div><h3>Diagrama de componentes</h3><p>Interface, API, regras de negócio e persistência.</p></div><a class="download" href="/documentacao/arquivos/componentes.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/HPB1Rjim38RlUWgYzpg7zJ3iCBHnK3X5rgLrkyko0oCphXfPSaNPGpOCs4Fi1OeU1WpOSK_WD-cJZ7Aw1V118Z-JFt_nb2E6s3LMyTQu5WCse7tJUaSkbd5d2GBfYAwsfAA9Sh_s4NCh93n__m5duQ4paM8dzytmcur6c1nA4AiMzHPhWgFScXI1pxG-WgyAFixb5ZQe2OgRTuj9NfQV01bkvvBBlOl1MwnyW8eWaaLUEMpRx9v7wg9Cr9sebmYSP2VPwvNBPvTmppEofWyZbHVgsq51IQ4tgU9o5--yswieq5MMWcYuMQuS2q8XQtVZxuNahwaEScnbGb6mxjWuOlv7J8LOKc33SVZbj4dJyuCLIrwD-V9g8GegZBX6JXAk5f9RkI0kwkHYLeaR0iwcwdOEnyTlPJ9u0zIBLvwLN58iBoGMo5KKp1U4EWoF6wCF-PHE0qZtY_BzvSffxxU6adKiQeSdhueHd0hOepKL3Z-7FyH0e8T7gpihnVQ8I1H8UyUTZMdoj1KKK-CgMI2l4T3nIm6LyFJRB9MsPCPLc02n3YQYSbwUVErZz0tuJN8Kphhenp6q5FpVI9GqNKnLdtmcL5v-W9g2R02qP3tmo-Ebt79s3hruRPesxCS39n_sLEE8Y5EGEgjJEQNr_Wi0" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Diagrama de componentes"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/HPB1Rjim38RlUWgYzpg7zJ3iCBHnK3X5rgLrkyko0oCphXfPSaNPGpOCs4Fi1OeU1WpOSK_WD-cJZ7Aw1V118Z-JFt_nb2E6s3LMyTQu5WCse7tJUaSkbd5d2GBfYAwsfAA9Sh_s4NCh93n__m5duQ4paM8dzytmcur6c1nA4AiMzHPhWgFScXI1pxG-WgyAFixb5ZQe2OgRTuj9NfQV01bkvvBBlOl1MwnyW8eWaaLUEMpRx9v7wg9Cr9sebmYSP2VPwvNBPvTmppEofWyZbHVgsq51IQ4tgU9o5--yswieq5MMWcYuMQuS2q8XQtVZxuNahwaEScnbGb6mxjWuOlv7J8LOKc33SVZbj4dJyuCLIrwD-V9g8GegZBX6JXAk5f9RkI0kwkHYLeaR0iwcwdOEnyTlPJ9u0zIBLvwLN58iBoGMo5KKp1U4EWoF6wCF-PHE0qZtY_BzvSffxxU6adKiQeSdhueHd0hOepKL3Z-7FyH0e8T7gpihnVQ8I1H8UyUTZMdoj1KKK-CgMI2l4T3nIm6LyFJRB9MsPCPLc02n3YQYSbwUVErZz0tuJN8Kphhenp6q5FpVI9GqNKnLdtmcL5v-W9g2R02qP3tmo-Ebt79s3hruRPesxCS39n_sLEE8Y5EGEgjJEQNr_Wi0" alt="Diagrama PlantUML: Diagrama de componentes"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+skinparam componentStyle rectangle
+title RotaClara — Arquitetura física / componentes
+package &quot;Cliente web&quot; {
+ [Interface HTML/CSS] as UI
+ [Controlador de telas\napp.js] as JS
+ [Chart.js 4.4.8\nCDN jsDelivr] as CH
+}
+package &quot;Servidor Python&quot; {
+ [Handler HTTP\nserver.py] as H
+ [Regras puras\nbusiness.py] as B
+ [Persistência / sqlite3] as SQL
+}
+database &quot;SQLite\nrotaclara.db&quot; as DB
+UI --&gt; JS : eventos
+JS --&gt; CH : renderiza gráficos
+JS --&gt; H : HTTP / JSON\ncookie de sessão
+H --&gt; B : validações e cálculos
+H --&gt; SQL : consultas parametrizadas\ne transações
+SQL --&gt; DB : leitura / escrita
+note bottom of H
+  Autoriza cada consulta e mutação.
+  CSV gerado pelo servidor.
+  PDF via impressão no navegador.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="implantacao"><div class="diagram-heading"><div><h3>Diagrama de implantação</h3><p>Navegador, servidor Python local, SQLite e CDN.</p></div><a class="download" href="/documentacao/arquivos/implantacao.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/NL9TRjD047xtAKPvXReELABA0shY81MKbe0Z-fANYNUSRhNUDRjZqu0gSGXkm0C7u0Yv2ITXrauBhIojTtQ--Vc-cRF0wBcjJSAQ3S57nvWRz0X_ll-0jtLZq3BkV-r_Eg2AM7S8oi75foKOLw99h5C4ezpLJSked0Sn5TNE1lP3t0Y-9J30Bh6ZRKJrRo2LTOKbm-XyTR60OyYBGivts65HUjtm2330rPjP0dVtAPOxldOMNgRZxDdQZb-yIZFvnfFJBCkUPWtaE_9fi-lp58zycpPeIo7SUuSQ2Xat6AJEr7zkTUS6bj1unxJLogrjX1oBYMMKALMRFdm-I-wIqhXMYHZpIxW9SpAwysjxlbejYnuZxucGWQEZrr301ABda5z85-__UME62UJNqcvw4-0aFKbFaw9tpGx_-KmGnOU5Pf8PCC76CRiQN3K81WlSkPR1KsXa694AGOrMLnJOmV9gcWeeTuOOWMxrbg1qbcxZeCkO1w9wmjX7t4g297p_koCHGwPCTMiEQo5JwJHzaLTE4x8AOZjFUvh7bXwlayI9hAeTB1iFJsZqLrGOQqvB6KyF4nxU1L1Qg0GjEoZ6GykLthQ7JPCWGNjIzFoXUq0fqdWjMoS2zCFuhyipkSNb_mi0" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Diagrama de implantação"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/NL9TRjD047xtAKPvXReELABA0shY81MKbe0Z-fANYNUSRhNUDRjZqu0gSGXkm0C7u0Yv2ITXrauBhIojTtQ--Vc-cRF0wBcjJSAQ3S57nvWRz0X_ll-0jtLZq3BkV-r_Eg2AM7S8oi75foKOLw99h5C4ezpLJSked0Sn5TNE1lP3t0Y-9J30Bh6ZRKJrRo2LTOKbm-XyTR60OyYBGivts65HUjtm2330rPjP0dVtAPOxldOMNgRZxDdQZb-yIZFvnfFJBCkUPWtaE_9fi-lp58zycpPeIo7SUuSQ2Xat6AJEr7zkTUS6bj1unxJLogrjX1oBYMMKALMRFdm-I-wIqhXMYHZpIxW9SpAwysjxlbejYnuZxucGWQEZrr301ABda5z85-__UME62UJNqcvw4-0aFKbFaw9tpGx_-KmGnOU5Pf8PCC76CRiQN3K81WlSkPR1KsXa694AGOrMLnJOmV9gcWeeTuOOWMxrbg1qbcxZeCkO1w9wmjX7t4g297p_koCHGwPCTMiEQo5JwJHzaLTE4x8AOZjFUvh7bXwlayI9hAeTB1iFJsZqLrGOQqvB6KyF4nxU1L1Qg0GjEoZ6GykLthQ7JPCWGNjIzFoXUq0fqdWjMoS2zCFuhyipkSNb_mi0" alt="Diagrama PlantUML: Diagrama de implantação"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+title RotaClara — Implantação efetiva do MVP local
+node &quot;Computador de demonstração&quot; {
+ node &quot;Navegador&quot; {
+  artifact &quot;HTML / CSS / JavaScript&quot; as WEB
+ }
+ node &quot;Python 3.10+\n127.0.0.1:8000&quot; {
+  artifact &quot;server.py&quot; as S
+  artifact &quot;business.py&quot; as B
+ }
+ database &quot;Arquivo local protegido\ndata/rotaclara.db&quot; as DB
+}
+cloud &quot;CDN jsDelivr\nHTTPS&quot; as CDN
+WEB --&gt; S : HTTP local / JSON
+WEB --&gt; CDN : Chart.js 4.4.8
+S --&gt; B
+S --&gt; DB : SQLite
+note bottom of WEB
+  Layout responsivo e manifesto PWA.
+  Coleta exige conexão com o servidor.
+  Teste móvel por emulação de viewport.
+end note
+note bottom of DB
+  Implantação de produção não realizada.
+  Acesso de outros dispositivos exige configuração
+  de rede, servidor apropriado e HTTPS.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="classes-detalhadas"><div class="diagram-heading"><div><h3>Classes detalhadas</h3><p>Estrutura efetiva dos módulos Python e do servidor HTTP.</p></div><a class="download" href="/documentacao/arquivos/classes-detalhadas.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/TLLBRYH54DtNAKApgX4rFKZih55hmB8O4CYDtQnRsPNHxcGoCseoeyOsCD8SWWiW5eW5AuiJz4qu2I_huxQHPzELdnU_5o-oNsSrIVlWg_pMnSua4wZr9kSlLPFRzihVj18ltSzCdrVgr3DTY9fJ3oJz-_4tEikQUksnyuUxAzSQiePSw3m7ZceEVnx-45hTwbvYDJYchqpcD-lrweBVzPprZOdMSw9NhxPkwvqemqTdR8BXSZdPpA1VAlhCokRhitNzV5okpY-Fwn_7vNv0Rz8Oe0wCwBPSNB5kJETgkssepvmQ1D9zGy2bsmAuJaxvISZef45rQWgot07q_8IiQnK79PfBN8z6IJpdWai23XzuIyuURKnldJuCvH31jEeaDhJbdIJ6VgU38PiiiRZC76rTycW8tTC-DuJUmNBFnd8Qmcx5tjPpe0yJYy-sVNQHSrvqjy_8e1NJ7kI7mvtjlP1bslKHRVk7yt8v41xxm4dgzyOByeWIa5HmqGN1rzpWYq0xBwQKj9TaaflG9G6Zh2umhbhZsnx2MNFeP0K1MLb9LAcxyjkG9ClXWQj7-3LKvo4zTcaoo4z0J_kiCgEi0psnTU2fIznAuJ1QLtGfJzYk9BL5ibSSlfKKZJKrgkmHgA6VneDxgtj6qRRtdC0dlJpoDd1xYHlNyf7QYKqGfnkxhSTEijsWQ1bs6BJ8hPQsdOvBwA2WMkbcNHdlJ2bSUqpOeBgI_Y2XegpXf9E42D370sMD2hyNNeVahy7tPc_olfvtq9Fn2XHcklHThkjfSwptdSU4VB4u9ZWKMxQVcE2XQBxXjim1pCj0uPLXJJ8eTRhARNAT5i18HGYOZ760lD-QzYqs7wfFlHs_ldWnln7LVBXOB8y2Fo48qk5fOfhw_GWtDmlL0esy6-92km2Vs1izt47KrGpxd-kn2V192fMw_0WtK7D2ACyGEimtyFuezWJeCBaGB1C7qcHY7j_EAe9Fsegg19BTd6b5T1OL1LdEPMQjXCFVqGcLvCcxk2yI_E4xDEibUeu-7Nv71Rc1OIoGeP-mFR_uVa7d5CGofXy9jkoqDvuEVu6BRfZIHOMveP98zHghyc_n7m00" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Classes detalhadas"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/TLLBRYH54DtNAKApgX4rFKZih55hmB8O4CYDtQnRsPNHxcGoCseoeyOsCD8SWWiW5eW5AuiJz4qu2I_huxQHPzELdnU_5o-oNsSrIVlWg_pMnSua4wZr9kSlLPFRzihVj18ltSzCdrVgr3DTY9fJ3oJz-_4tEikQUksnyuUxAzSQiePSw3m7ZceEVnx-45hTwbvYDJYchqpcD-lrweBVzPprZOdMSw9NhxPkwvqemqTdR8BXSZdPpA1VAlhCokRhitNzV5okpY-Fwn_7vNv0Rz8Oe0wCwBPSNB5kJETgkssepvmQ1D9zGy2bsmAuJaxvISZef45rQWgot07q_8IiQnK79PfBN8z6IJpdWai23XzuIyuURKnldJuCvH31jEeaDhJbdIJ6VgU38PiiiRZC76rTycW8tTC-DuJUmNBFnd8Qmcx5tjPpe0yJYy-sVNQHSrvqjy_8e1NJ7kI7mvtjlP1bslKHRVk7yt8v41xxm4dgzyOByeWIa5HmqGN1rzpWYq0xBwQKj9TaaflG9G6Zh2umhbhZsnx2MNFeP0K1MLb9LAcxyjkG9ClXWQj7-3LKvo4zTcaoo4z0J_kiCgEi0psnTU2fIznAuJ1QLtGfJzYk9BL5ibSSlfKKZJKrgkmHgA6VneDxgtj6qRRtdC0dlJpoDd1xYHlNyf7QYKqGfnkxhSTEijsWQ1bs6BJ8hPQsdOvBwA2WMkbcNHdlJ2bSUqpOeBgI_Y2XegpXf9E42D370sMD2hyNNeVahy7tPc_olfvtq9Fn2XHcklHThkjfSwptdSU4VB4u9ZWKMxQVcE2XQBxXjim1pCj0uPLXJJ8eTRhARNAT5i18HGYOZ760lD-QzYqs7wfFlHs_ldWnln7LVBXOB8y2Fo48qk5fOfhw_GWtDmlL0esy6-92km2Vs1izt47KrGpxd-kn2V192fMw_0WtK7D2ACyGEimtyFuezWJeCBaGB1C7qcHY7j_EAe9Fsegg19BTd6b5T1OL1LdEPMQjXCFVqGcLvCcxk2yI_E4xDEibUeu-7Nv71Rc1OIoGeP-mFR_uVa7d5CGofXy9jkoqDvuEVu6BRfZIHOMveP98zHghyc_n7m00" alt="Diagrama PlantUML: Classes detalhadas"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+skinparam classAttributeIconSize 0
+title RotaClara — Estrutura lógica da implementação Python
+class BaseHTTPRequestHandler &lt;&lt;biblioteca padrão&gt;&gt;
+class Handler {
+ +do_GET()
+ +do_POST()
+ +do_PUT()
+ +handle_request(method)
+ +get_api(db, user, path, query)
+ +write_api(db, user, path, method, data)
+ +user(db): dict
+ +require(user, roles)
+ +route(db, user, rid): dict
+ +audit(db, user, pid, action, before, after, reason)
+ +send(data, status, kind, headers)
+ +body(): dict
+}
+class &quot;business.py&quot; as Business &lt;&lt;módulo de funções&gt;&gt; {
+ +numero(valor, nome, minimo, maximo): float
+ +horario(valor): datetime
+ +calcularTempoParadoPonto(ponto, ordem): float
+ +calcularTempoTotalRoteiro(pontos): float
+ +calcularCustoRoteiro(distancia, preco, rendimento): float
+ +calcularPorcentagemJornada(minutos, jornada): float
+}
+class &quot;server.py / funções&quot; as Service &lt;&lt;módulo&gt;&gt; {
+ +init_db()
+ +seed_demo()
+ +connect(): Connection
+ +scope(user, alias): tuple
+ +recalc(db, rid)
+ +report_data(db, user, query): dict
+ +password_hash(password, salt): str
+ +now(): str
+}
+class &quot;sqlite3.Connection&quot; as Conn &lt;&lt;biblioteca padrão&gt;&gt; {
+ +execute(sql, parametros)
+ +executescript(sql)
+ +commit()
+ +rollback()
+}
+BaseHTTPRequestHandler &lt;|-- Handler
+Handler ..&gt; Business : valida e calcula
+Handler ..&gt; Service : sessão, escopo e relatório
+Service ..&gt; Business : recalcula totais
+Service ..&gt; Conn : cria conexão
+Handler ..&gt; Conn : persiste em transação
+note bottom of Service
+  Entidades de domínio são linhas SQLite/dicionários,
+  não classes ORM. O modelo conceitual é separado.
+end note
+@enduml
+</code></pre></details></article><article class="diagram-card" id="objetos"><div class="diagram-heading"><div><h3>Diagrama de objetos</h3><p>Instâncias do roteiro A: 75 minutos parados.</p></div><a class="download" href="/documentacao/arquivos/objetos.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/PPJDZjCm4CVlVefH1PTLF_BHbBRIIbjLIn6YKXJsmDLDJDTBdAbifq92I3m4Bx1mG1nuYhm9Jy8uQKhIdZonC__VVoRZt1dBjIrLpgoqkO04BL_dN7Fu--qxt7yMwf0ZP09mzoGi6iWGD5eXDSAAkStKmc0lj2Yiy649coOS03UmWIyC2bG2Rc5mEW3HQ0xOrtEwGejQaXCdi6qVQebjL-9yz5y4FgaOzJjfoSyj-5v7zMHpHPf94zQAYLFCE8cGOk05iv6t6FaHIMLEkaWbVw0cvBMSH_eCBC6mteofCvaZlOf0oO91MXgBzyPArUmdBs3c3JsFmHFgWcTyTSXbIYkTpU6HmP7dgDUeTfGeZo8_dRUvb3h9EqKSN4jYB6nZFlQTUzIPKCuV0r5arDVKfG_UY_qONdDL_SabfthIHx5loDvywImPBi-FqQciSqLUNL277FJ9GPSSzCb9oI4MkXn255s2Wpuul0BxqIKvx9F3BZcy9dyWR9-ww9UxMD9WN5AlwftsgTCkTTgdhevZU8lLJuHrzTjmVKaFEtJVgrlGfqSjVGEZ4MpPrYq9I-26rjXlWw0DmZQOie9c6NPeBIh0ZvG4yE2qpQHnMFr2s74Z26Jevf3lqirqXcDwymtgwbbBDCFw2WphcQz-k1T0mA79DgumcTE0QaupYiPbqkTDwVwMzSMWwP_0TEx1JNr7t3SSpeBevPYH1t0EsHr5xhVo3m00" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Diagrama de objetos"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/PPJDZjCm4CVlVefH1PTLF_BHbBRIIbjLIn6YKXJsmDLDJDTBdAbifq92I3m4Bx1mG1nuYhm9Jy8uQKhIdZonC__VVoRZt1dBjIrLpgoqkO04BL_dN7Fu--qxt7yMwf0ZP09mzoGi6iWGD5eXDSAAkStKmc0lj2Yiy649coOS03UmWIyC2bG2Rc5mEW3HQ0xOrtEwGejQaXCdi6qVQebjL-9yz5y4FgaOzJjfoSyj-5v7zMHpHPf94zQAYLFCE8cGOk05iv6t6FaHIMLEkaWbVw0cvBMSH_eCBC6mteofCvaZlOf0oO91MXgBzyPArUmdBs3c3JsFmHFgWcTyTSXbIYkTpU6HmP7dgDUeTfGeZo8_dRUvb3h9EqKSN4jYB6nZFlQTUzIPKCuV0r5arDVKfG_UY_qONdDL_SabfthIHx5loDvywImPBi-FqQciSqLUNL277FJ9GPSSzCb9oI4MkXn255s2Wpuul0BxqIKvx9F3BZcy9dyWR9-ww9UxMD9WN5AlwftsgTCkTTgdhevZU8lLJuHrzTjmVKaFEtJVgrlGfqSjVGEZ4MpPrYq9I-26rjXlWw0DmZQOie9c6NPeBIh0ZvG4yE2qpQHnMFr2s74Z26Jevf3lqirqXcDwymtgwbbBDCFw2WphcQz-k1T0mA79DgumcTE0QaupYiPbqkTDwVwMzSMWwP_0TEx1JNr7t3SSpeBevPYH1t0EsHr5xhVo3m00" alt="Diagrama PlantUML: Diagrama de objetos"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+title RotaClara — Exemplo de objetos do roteiro A
+object &quot;gerente1 : Gerente&quot; as G {
+ nome = &quot;Gerente exemplo&quot;
+}
+object &quot;motorista1 : Motorista&quot; as M {
+ nome = &quot;Motorista exemplo&quot;
+ kmPorLitro = 10
+}
+object &quot;roteiroA : Roteiro&quot; as R {
+ data = &quot;2026-09-15&quot;
+ distanciaTotal = 100 km
+ tempoTotalParado = 75 min
+ custoEstimado = R$ 60,00
+ jornadaAplicada = 8 h
+ valorCombustivelAplicado = R$ 6,00/l
+}
+object &quot;p1 : Ponto&quot; as P1 {
+ ordem = 1
+ endereco = &quot;Seg. Família&quot;
+ chegada = 08:00
+ saida = 08:05
+ tempoParado = 0 min
+}
+object &quot;p2 : Ponto&quot; as P2 {
+ ordem = 2
+ endereco = &quot;Rua Peru, 55&quot;
+ chegada = 08:20
+ saida = 08:35
+ tempoParado = 15 min
+}
+object &quot;p3 : Ponto&quot; as P3 {
+ ordem = 3
+ endereco = &quot;Rua X, 5&quot;
+ chegada = 09:00
+ saida = 09:10
+ tempoParado = 10 min
+}
+object &quot;p4 : Ponto&quot; as P4 {
+ ordem = 4
+ endereco = &quot;Av. João César&quot;
+ chegada = 09:30
+ saida = 10:20
+ tempoParado = 50 min
+}
+G -- M
+M -- R
+R *-- P1
+R *-- P2
+R *-- P3
+R *-- P4
+note bottom of R
+  Tempos/endereço baseados no enunciado.
+  Horários, data, distância e preço são ilustrativos.
+  Percentual = 75 / 480 * 100 = 15,625%.
+end note
+@enduml
+</code></pre></details></article></section><section class="docs-section" id="persistencia"><div class="section-heading"><span>03</span><div><h2>Projeto de persistência</h2><p>Modelo físico de dados, chaves e relacionamentos.</p></div></div><p><a class="download" href="/documentacao/arquivos/schema.sql" download>Baixar esquema SQL completo ↓</a></p><details class="source"><summary>Consultar esquema SQL</summary><pre><code>PRAGMA foreign_keys = ON;
+CREATE TABLE IF NOT EXISTS gerente (
+ id INTEGER PRIMARY KEY, nome TEXT NOT NULL, telefone TEXT NOT NULL, email TEXT NOT NULL UNIQUE
+);
+CREATE TABLE IF NOT EXISTS motorista (
+ id INTEGER PRIMARY KEY, gerente_id INTEGER REFERENCES gerente(id), nome TEXT NOT NULL,
+ telefone TEXT NOT NULL, documento TEXT NOT NULL UNIQUE, veiculo TEXT NOT NULL,
+ km_por_litro REAL NOT NULL CHECK(km_por_litro &gt; 0)
+);
+CREATE TABLE IF NOT EXISTS usuario (
+ id INTEGER PRIMARY KEY, login TEXT NOT NULL UNIQUE, senha_hash TEXT NOT NULL,
+ perfil TEXT NOT NULL CHECK(perfil IN (&#x27;administrador&#x27;,&#x27;gerente&#x27;,&#x27;motorista&#x27;)),
+ motorista_id INTEGER UNIQUE REFERENCES motorista(id), gerente_id INTEGER UNIQUE REFERENCES gerente(id),
+ CHECK((perfil=&#x27;motorista&#x27; AND motorista_id IS NOT NULL AND gerente_id IS NULL) OR
+ (perfil=&#x27;gerente&#x27; AND gerente_id IS NOT NULL AND motorista_id IS NULL) OR
+ (perfil=&#x27;administrador&#x27; AND motorista_id IS NULL AND gerente_id IS NULL))
+);
+CREATE TABLE IF NOT EXISTS parametro (
+ id INTEGER PRIMARY KEY CHECK(id=1), valor_combustivel REAL NOT NULL CHECK(valor_combustivel&gt;=0),
+ km_por_litro REAL NOT NULL CHECK(km_por_litro&gt;0), custo_por_km REAL NOT NULL CHECK(custo_por_km&gt;=0),
+ jornada_padrao_horas REAL NOT NULL DEFAULT 8 CHECK(jornada_padrao_horas&gt;0 AND jornada_padrao_horas&lt;=24),
+ excluir_partida INTEGER NOT NULL DEFAULT 1 CHECK(excluir_partida=1),
+ regra_calculo TEXT NOT NULL DEFAULT &#x27;saida_menos_chegada&#x27; CHECK(regra_calculo=&#x27;saida_menos_chegada&#x27;)
+);
+CREATE TABLE IF NOT EXISTS roteiro (
+ id INTEGER PRIMARY KEY, data TEXT NOT NULL, motorista_id INTEGER NOT NULL REFERENCES motorista(id),
+ distancia_total REAL NOT NULL CHECK(distancia_total&gt;=0), tempo_total_parado REAL NOT NULL DEFAULT 0,
+ custo_estimado REAL NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT &#x27;planejado&#x27; CHECK(status IN (&#x27;planejado&#x27;,&#x27;em_andamento&#x27;,&#x27;concluido&#x27;)),
+ valor_combustivel REAL NOT NULL, km_por_litro REAL NOT NULL CHECK(km_por_litro&gt;0),
+ custo_por_km REAL NOT NULL, jornada_padrao_horas REAL NOT NULL,
+ UNIQUE(motorista_id,data)
+);
+CREATE TABLE IF NOT EXISTS ponto (
+ id INTEGER PRIMARY KEY, roteiro_id INTEGER NOT NULL REFERENCES roteiro(id), endereco TEXT NOT NULL,
+ latitude REAL NOT NULL CHECK(latitude BETWEEN -90 AND 90), longitude REAL NOT NULL CHECK(longitude BETWEEN -180 AND 180),
+ data_hora_chegada TEXT, data_hora_saida TEXT, tempo_parado_minutos REAL NOT NULL DEFAULT 0 CHECK(tempo_parado_minutos&gt;=0),
+ ordem_sequencial INTEGER NOT NULL CHECK(ordem_sequencial&gt;0), UNIQUE(roteiro_id,ordem_sequencial),
+ CHECK(data_hora_saida IS NULL OR (data_hora_chegada IS NOT NULL AND data_hora_saida&gt;=data_hora_chegada))
+);
+CREATE TABLE IF NOT EXISTS auditoria (
+ id INTEGER PRIMARY KEY, usuario_id INTEGER NOT NULL REFERENCES usuario(id), instante TEXT NOT NULL,
+ ponto_id INTEGER REFERENCES ponto(id), acao TEXT NOT NULL, antes TEXT NOT NULL, depois TEXT NOT NULL, motivo TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS auditoria_sem_update BEFORE UPDATE ON auditoria BEGIN SELECT RAISE(ABORT,&#x27;Auditoria imutavel&#x27;); END;
+CREATE TRIGGER IF NOT EXISTS auditoria_sem_delete BEFORE DELETE ON auditoria BEGIN SELECT RAISE(ABORT,&#x27;Auditoria imutavel&#x27;); END;
+CREATE TABLE IF NOT EXISTS sessao (token_hash TEXT PRIMARY KEY, usuario_id INTEGER NOT NULL REFERENCES usuario(id), expira REAL NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_roteiro_data ON roteiro(data,motorista_id);
+CREATE INDEX IF NOT EXISTS idx_motorista_gerente ON motorista(gerente_id);
+CREATE INDEX IF NOT EXISTS idx_ponto_roteiro ON ponto(roteiro_id,ordem_sequencial);
+CREATE INDEX IF NOT EXISTS idx_auditoria_instante ON auditoria(instante);
+</code></pre></details><article class="diagram-card" id="modelo-relacional"><div class="diagram-heading"><div><h3>Modelo relacional</h3><p>Gerentes, motoristas, roteiros, pontos, parâmetros, usuários, sessões e auditoria.</p></div><a class="download" href="/documentacao/arquivos/modelo-relacional.puml" download>Baixar .puml ↓</a></div>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/jLLHRjGm4FtFAVoDM0w0ghO8RL5LgA1g4N-HiMUJOHrFi9rLgouIX-06V21nZTw4atIyYRrfc-QFhoHlnZDltdWcnpv85xh653Lg40gTCb3uDTfMEja8WnR2JGk2NAYf21WCY0iAygrXk_ZtyvVuG1eC2JxTWlFemzrVgr0MODdxHbJW-0t4RI742zJYjJWzlro-Mrw8WuEFPuU7nM9HM6g03PVBBvT500ChilaR6ebc-E0ZL-UddwwMVEn7Ij1G8CTfvMoAWKRvo7mIpNFfDQckuPCqGM43g3gJBCMwALjofS7W8dQnVFD-pz9H06HyZgEMNCGGB5SroLX7IrIv3DmBax85Q5hgeJBsJsSUglE1Il01cn7AGKBdKygDD4nVKVELdN43EUnKONt02A-RX7qZPwMMd5exIMLDJledGhGKnPoJOP1gid2mcXkfikP6Sj1EGqfZo5OFWAZfZacfQgYOtN3oQ6Jn4aTuBs8lNzcWxGBbAiXfQ4eFtpk8wfizmL61SN0WFDlhbyAZhGm4idsz_rLtk5QcGnVh2NsLYR23AgeYpVWEvoewtqc7yuqoLA6Tc0iFjcPffQzJMDuCgpp5pzpjezJZgL7DnapGW_Tou1Te3NQSS4HoA6JwDbstwEIJAoexZP7X_4QP2xoxvDC5e8sZ6_A2aKfczIEUnr53I-X7ck5crAQqLhVRnO9kzqjmBsuo3UEKnce7Rs_xEHnx4tjlKz_tyH_2wLeCiVicF4QpVhqEVOmnR9cAS5ZLGT1gFp0izkSu2wo1eXPv_lpEc9UdbKBn-Ri_Tx_f5NkVyrF0DVC7SNBM-y86-PScf0dW-4cCCaVD_hmxHCnS7FDR_ENT0m00" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Modelo relacional"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/jLLHRjGm4FtFAVoDM0w0ghO8RL5LgA1g4N-HiMUJOHrFi9rLgouIX-06V21nZTw4atIyYRrfc-QFhoHlnZDltdWcnpv85xh653Lg40gTCb3uDTfMEja8WnR2JGk2NAYf21WCY0iAygrXk_ZtyvVuG1eC2JxTWlFemzrVgr0MODdxHbJW-0t4RI742zJYjJWzlro-Mrw8WuEFPuU7nM9HM6g03PVBBvT500ChilaR6ebc-E0ZL-UddwwMVEn7Ij1G8CTfvMoAWKRvo7mIpNFfDQckuPCqGM43g3gJBCMwALjofS7W8dQnVFD-pz9H06HyZgEMNCGGB5SroLX7IrIv3DmBax85Q5hgeJBsJsSUglE1Il01cn7AGKBdKygDD4nVKVELdN43EUnKONt02A-RX7qZPwMMd5exIMLDJledGhGKnPoJOP1gid2mcXkfikP6Sj1EGqfZo5OFWAZfZacfQgYOtN3oQ6Jn4aTuBs8lNzcWxGBbAiXfQ4eFtpk8wfizmL61SN0WFDlhbyAZhGm4idsz_rLtk5QcGnVh2NsLYR23AgeYpVWEvoewtqc7yuqoLA6Tc0iFjcPffQzJMDuCgpp5pzpjezJZgL7DnapGW_Tou1Te3NQSS4HoA6JwDbstwEIJAoexZP7X_4QP2xoxvDC5e8sZ6_A2aKfczIEUnr53I-X7ck5crAQqLhVRnO9kzqjmBsuo3UEKnce7Rs_xEHnx4tjlKz_tyH_2wLeCiVicF4QpVhqEVOmnR9cAS5ZLGT1gFp0izkSu2wo1eXPv_lpEc9UdbKBn-Ri_Tx_f5NkVyrF0DVC7SNBM-y86-PScf0dW-4cCCaVD_hmxHCnS7FDR_ENT0m00" alt="Diagrama PlantUML: Modelo relacional"></a>
+    <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
+    <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
+hide circle
+skinparam linetype ortho
+title RotaClara — Modelo de persistência
+entity gerente {
+  *id : INTEGER &lt;&lt;PK&gt;&gt;
+--
+nome : TEXT
+telefone : TEXT
+email : TEXT &lt;&lt;UNIQUE&gt;&gt;
+}
+entity motorista {
+  *id : INTEGER &lt;&lt;PK&gt;&gt;
+--
+gerente_id : INTEGER &lt;&lt;FK&gt;&gt;
+nome : TEXT
+telefone : TEXT
+documento : TEXT &lt;&lt;UNIQUE&gt;&gt;
+veiculo : TEXT
+km_por_litro : REAL
+}
+entity roteiro {
+  *id : INTEGER &lt;&lt;PK&gt;&gt;
+--
+data : TEXT
+motorista_id : INTEGER &lt;&lt;FK&gt;&gt;
+distancia_total : REAL
+tempo_total_parado : REAL
+custo_estimado : REAL
+status : TEXT
+valor_combustivel : REAL
+km_por_litro : REAL
+custo_por_km : REAL
+jornada_padrao_horas : REAL
+}
+entity ponto {
+  *id : INTEGER &lt;&lt;PK&gt;&gt;
+--
+roteiro_id : INTEGER &lt;&lt;FK&gt;&gt;
+endereco : TEXT
+latitude : REAL
+longitude : REAL
+data_hora_chegada : TEXT?
+data_hora_saida : TEXT?
+tempo_parado_minutos : REAL
+ordem_sequencial : INTEGER
+}
+entity parametro {
+  *id : INTEGER &lt;&lt;PK, singleton&gt;&gt;
+--
+valor_combustivel : REAL
+km_por_litro : REAL
+custo_por_km : REAL
+jornada_padrao_horas : REAL
+excluir_partida : INTEGER
+regra_calculo : TEXT
+}
+entity usuario {
+  *id : INTEGER &lt;&lt;PK&gt;&gt;
+--
+login : TEXT &lt;&lt;UNIQUE&gt;&gt;
+senha_hash : TEXT
+perfil : TEXT
+motorista_id : INTEGER? &lt;&lt;FK&gt;&gt;
+gerente_id : INTEGER? &lt;&lt;FK&gt;&gt;
+}
+entity sessao {
+  *token_hash : TEXT &lt;&lt;PK&gt;&gt;
+--
+usuario_id : INTEGER &lt;&lt;FK&gt;&gt;
+expira : REAL
+}
+entity auditoria {
+  *id : INTEGER &lt;&lt;PK&gt;&gt;
+--
+usuario_id : INTEGER &lt;&lt;FK&gt;&gt;
+ponto_id : INTEGER? &lt;&lt;FK&gt;&gt;
+instante : TEXT
+acao : TEXT
+antes : TEXT
+depois : TEXT
+motivo : TEXT
+}
+gerente ||--o{ motorista
+motorista ||--o{ roteiro
+roteiro ||--|{ ponto
+motorista |o--o| usuario
+gerente |o--o| usuario
+usuario ||--o{ sessao
+usuario ||--o{ auditoria
+ponto |o--o{ auditoria
+note right of parametro
+  Valores copiados para roteiro na criação.
+  Não existe FK para evitar alterar o passado.
+end note
+@enduml
+</code></pre></details></article></section><section class="docs-section" id="campanha"><div class="section-heading"><span>04</span><div><h2>Marca e campanha</h2><p>Nome do produto, identidade e divulgação para os pontos extras.</p></div></div><div id="campanha-marketing"><details class="doc-document" open><summary><span><strong>Campanha de marketing</strong><small>Nome, identidade visual, peças, cronograma, orçamento e métricas.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/04-campanha-marketing.md" download>Baixar original .md ↓</a><h2>RotaClara — Campanha de marketing</h2>
+<h3>Marca e posicionamento</h3>
+<p><strong>Produto escolhido:</strong> RotaClara. O nome comunica clareza sobre trajeto, tempo e custo; “clara” expressa o benefício sem prometer rastreamento em tempo real ou otimização automática.</p>
+<p><strong>Outras opções avaliadas:</strong> GiroCerto, PontoTempo, RotaVista e MinutoLog.</p>
+<p><strong>Slogans:</strong> “Seu tempo tem endereço.” · “Enxergue a espera. Planeje melhor.” · “Mais clareza na rota. Mais controle no custo.”</p>
+<p><strong>Identidade visual:</strong> azul petróleo <code>#102B36</code>, verde <code>#167454</code>, lima <code>#D7F36A</code>, fundo <code>#F3F6F7</code>; Inter ou fonte de sistema. O símbolo <code>r.</code> acompanha a marca.</p>
+<p><strong>Landing page:</strong> título “A entrega termina. A espera precisa aparecer.”; CTA “Abrir o painel”; três pilares: visibilidade, produtividade e controle de custos. A página está em <code>/campanha</code>.</p>
+<h3>1. Conceito da campanha</h3>
+<p><strong>Nome da campanha:</strong> Seu tempo tem endereço.</p>
+<p><strong>Mensagem central:</strong> “Você sabe onde entrega. Agora descubra onde espera.”</p>
+<p><strong>Proposta:</strong> divulgar o MVP com conteúdo orgânico, demonstrações curtas e contatos da rede da equipe, reaproveitando o aplicativo e a identidade visual já produzidos. O foco é conseguir conversas com gestores e validar o interesse, com <strong>R$ 0 de mídia paga</strong>.</p>
+<p>Esta é uma campanha planejada para o trabalho acadêmico. As metas, horas e valores abaixo são estimativas de planejamento, não resultados alcançados. Nenhuma publicação, mensagem comercial ou despesa foi realizada.</p>
+<h3>2. Objetivo e público</h3>
+<p><strong>Objetivo em 14 dias:</strong> apresentar o problema do tempo parado, demonstrar como a RotaClara o mede e conseguir três conversas com potenciais participantes de um piloto.</p>
+<p><strong>Público principal:</strong> donos de pequenas transportadoras, gerentes de logística e coordenadores de entregas urbanas.</p>
+<p><strong>Público operacional:</strong> motoristas e motoboys, que ajudam a avaliar a facilidade da coleta no celular.</p>
+<p><strong>Recorte inicial:</strong> empresas acessíveis pela rede de contatos dos integrantes, na região onde a equipe consegue demonstrar o produto. Não comprar listas de contatos nem tentar alcançar todo o mercado de uma vez.</p>
+<p><strong>Oferta de entrada proposta:</strong> demonstração guiada de 10 minutos com dados fictícios, sem compromisso de contratação. A disponibilidade da equipe deve ser combinada antes de divulgar horários.</p>
+<h3>3. Estratégia de divulgação</h3>
+<ul><li>Reaproveita a landing page, a marca, os gráficos e o roteiro de exemplo do próprio trabalho.</li><li>Um único vídeo demonstrativo gera o pitch, um trecho curto e imagens para o carrossel.</li><li>Usa os perfis e canais que a equipe já possui, sem contratar mídia ou ferramentas.</li><li>Concentra o esforço em gestores próximos do público-alvo, em vez de buscar apenas alcance ou curtidas.</li><li>Registra o retorno manualmente, sem instalar ferramentas de automação ou analytics nesta versão.</li></ul>
+<p>O orçamento pressupõe uso dos equipamentos, acesso à internet e contas que a equipe já tem. O esforço previsto é de 12 horas de equipe.</p>
+<h3>4. Canais e ações</h3>
+<div class="table-wrap"><table><thead><tr><th>Canal</th><th>Ação</th><th>Frequência em 14 dias</th><th>Chamada para ação</th></tr></thead><tbody><tr><td>LinkedIn</td><td>Publicação sobre a dor e carrossel com exemplo de cálculo</td><td>2 publicações</td><td>Conversar sobre uma demonstração</td></tr><tr><td>Instagram</td><td>Carrossel reaproveitado e vídeo de até 30 segundos</td><td>2 publicações e até 3 stories</td><td>Responder ao conteúdo para saber mais</td></tr><tr><td>WhatsApp</td><td>Convite individual a contatos profissionais com relação prévia</td><td>Até 10 convites relevantes</td><td>Combinar uma demonstração de 10 minutos</td></tr><tr><td>Rede da faculdade</td><td>Apresentação a colegas e contatos com experiência em logística</td><td>1 rodada de apresentação</td><td>Indicar um gestor interessado</td></tr><tr><td>Demonstração ao vivo</td><td>Mostrar coleta, dashboard e histórico com dados fictícios</td><td>Até 3 sessões</td><td>Dar feedback e avaliar interesse em piloto</td></tr></tbody></table></div>
+<p>Os convites não são disparos em massa. Um contato que não demonstrar interesse não recebe insistência. Os canais acima são uma proposta de execução; não representam contas comerciais já criadas para a RotaClara.</p>
+<h3>5. Caminho do interessado</h3>
+<ol><li><strong>Descoberta:</strong> pessoa vê uma publicação com a pergunta “Onde sua operação espera mais?”.</li><li><strong>Interesse:</strong> conhece o exemplo de 75 minutos parados e entende o benefício do registro por endereço.</li><li><strong>Conversa:</strong> responde à publicação ou ao convite e combina uma demonstração.</li><li><strong>Demonstração:</strong> equipe mostra o MVP e pergunta como a empresa controla esse tempo hoje.</li><li><strong>Validação:</strong> interessado informa se participaria de um piloto e quais condições seriam necessárias.</li></ol>
+<p><strong>Situação atual:</strong> o aplicativo e a landing estão em localhost. O endereço 127.0.0.1 só funciona no computador que executa o servidor; não deve ser enviado a potenciais clientes como link público. Nesta etapa, a demonstração acontece presencialmente ou por compartilhamento de tela. Uma URL pública só pode ser usada depois de uma implantação efetiva.</p>
+<h3>6. Conteúdo pronto para divulgação</h3>
+<h4>Publicação principal — LinkedIn</h4>
+<p>“15 minutos na portaria. 10 aguardando atendimento. 50 na descarga.</p>
+<p>No exemplo do nosso projeto, são 75 minutos parados: 15,6% de uma jornada de oito horas.</p>
+<p>A RotaClara registra chegada e saída em cada ponto e mostra onde esse tempo se concentra. O gestor pode consultar dias, meses e períodos, investigar esperas e estimar o combustível do trajeto.</p>
+<p>Estamos desenvolvendo um MVP acadêmico e queremos ouvir quem vive essa rotina. Como sua equipe registra o tempo parado hoje?</p>
+<p>Se fizer sentido para sua operação, podemos combinar uma demonstração de 10 minutos.</p>
+<p>RotaClara. Seu tempo tem endereço.</p>
+<p>#Logística #Entregas #GestãoDeFrotas #RotaClara”</p>
+<h4>Carrossel — seis telas</h4>
+<div class="table-wrap"><table><thead><tr><th>Tela</th><th>Chamada</th><th>Texto de apoio</th></tr></thead><tbody><tr><td>1</td><td>Você sabe onde entrega. E onde espera?</td><td>O tempo parado também faz parte da operação.</td></tr><tr><td>2</td><td>Minutos pequenos. Um total importante.</td><td>Portaria, atendimento e descarga: a espera se acumula.</td></tr><tr><td>3</td><td>Registre chegada e saída.</td><td>A diferença mostra o tempo parado por endereço. A partida fica fora da soma.</td></tr><tr><td>4</td><td>75 minutos = 15,6% da jornada.</td><td>Exemplo ilustrativo: 15 + 10 + 50 minutos, com jornada de 8 horas.</td></tr><tr><td>5</td><td>Transforme o registro em decisão.</td><td>Investigue gargalos, converse sobre janelas de atendimento e planeje melhor.</td></tr><tr><td>6</td><td>Seu tempo tem endereço.</td><td>Conheça o MVP RotaClara em uma demonstração guiada.</td></tr></tbody></table></div>
+<p>Usar azul petróleo #102B36, verde #167454 e lima #D7F36A, mantendo o texto legível. Os slides podem usar capturas da demonstração fictícia, sem informações pessoais ou senhas. O arquivo de marca e campanha contém o pitch completo de um minuto e a identidade visual.</p>
+<h4>Vídeo curto — 30 segundos</h4>
+<p><strong>0–7 s:</strong> “Sua equipe entrega o dia inteiro. Mas quanto tempo ela passa esperando?” Mostrar a lista de pontos do roteiro.</p>
+<p><strong>7–18 s:</strong> “Na RotaClara, o motorista registra chegada e saída. Cada parada fica ligada a um endereço.” Mostrar os dois botões e o histórico.</p>
+<p><strong>18–25 s:</strong> “O painel revela onde o tempo se concentra e quanto representa da jornada.” Mostrar o exemplo de 75 minutos.</p>
+<p><strong>25–30 s:</strong> “Quer conhecer o MVP? Vamos combinar uma demonstração. RotaClara: seu tempo tem endereço.” Encerrar com a marca.</p>
+<h4>Convite individual — WhatsApp</h4>
+<p>“Olá! Estou desenvolvendo com minha equipe um projeto acadêmico para medir o tempo parado nas entregas. A RotaClara registra chegada e saída e mostra as esperas por endereço. Como você conhece essa rotina, gostaria de ouvir sua opinião. Você teria 10 minutos para uma demonstração com dados fictícios nesta semana?”</p>
+<p>Personalizar a apresentação conforme a relação com o contato. Não afirmar que conhece a operação da pessoa se isso não for verdade. Mensagem pronta para uso humano; não há envio automático no aplicativo.</p>
+<h3>7. Cronograma de 14 dias</h3>
+<div class="table-wrap"><table><thead><tr><th>Quando</th><th>Entrega / ação</th><th>Responsável sugerido</th><th>Esforço previsto</th></tr></thead><tbody><tr><td>Dias 1–2</td><td>Revisar mensagem, preparar demonstração e listar contatos relevantes</td><td>Equipe</td><td>2 h</td></tr><tr><td>Dias 3–4</td><td>Gravar vídeo e montar carrossel usando o mesmo exemplo</td><td>Integrante de conteúdo</td><td>3 h</td></tr><tr><td>Dia 5</td><td>Publicar primeiro conteúdo e anotar respostas</td><td>Integrante de divulgação</td><td>1 h</td></tr><tr><td>Dias 6–7</td><td>Fazer convites individuais e combinar horários</td><td>Integrante de divulgação</td><td>1 h</td></tr><tr><td>Dias 8–10</td><td>Realizar até três demonstrações e registrar feedback</td><td>Integrante técnico + divulgação</td><td>2 h</td></tr><tr><td>Dias 11–12</td><td>Publicar segundo conteúdo com dúvida frequente, sem inventar depoimentos</td><td>Integrante de conteúdo</td><td>1 h</td></tr><tr><td>Dias 13–14</td><td>Consolidar métricas, aprendizados e ajustes para a banca</td><td>Equipe</td><td>2 h</td></tr></tbody></table></div>
+<p><strong>Total previsto:</strong> 12 horas somadas de trabalho da equipe. Em dupla, dividir conteúdo/divulgação e demonstração/medição. Em trio, separar conteúdo, relacionamento e parte técnica. Os nomes dos responsáveis devem ser preenchidos pela equipe.</p>
+<h3>8. Orçamento</h3>
+<div class="table-wrap"><table><thead><tr><th>Item</th><th>Desembolso previsto</th><th>Condição</th></tr></thead><tbody><tr><td>Mídia paga</td><td>R$ 0</td><td>Distribuição orgânica</td></tr><tr><td>Produção de texto e peças</td><td>R$ 0 adicional</td><td>Feita pela própria equipe com recursos disponíveis</td></tr><tr><td>Gravação e demonstração</td><td>R$ 0 adicional</td><td>Equipamentos e conexão já disponíveis</td></tr><tr><td>Landing e aplicativo local</td><td>R$ 0 adicional</td><td>Reutilização do MVP, sem contratar hospedagem</td></tr><tr><td>Impressão e brindes</td><td>R$ 0</td><td>Não fazem parte da proposta</td></tr><tr><td>Total base</td><td>R$ 0 de desembolso adicional</td><td>Mais 12 horas de equipe</td></tr></tbody></table></div>
+<p><strong>Alternativa opcional:</strong> reservar até R$ 50 para um pequeno teste de divulgação paga somente se a equipe decidir investir após observar interesse orgânico. Esse valor é um teto proposto, não cotação de plataforma ou gasto autorizado. Não faz parte do plano base e não há promessa de alcance ou conversões por esse valor.</p>
+<p>Para apresentar o custo econômico, calcular <strong>12 h × valor-hora escolhido pela equipe</strong>, separadamente do desembolso. Não atribuir um valor de mercado sem justificativa.</p>
+<h3>9. Metas e acompanhamento</h3>
+<div class="table-wrap"><table><thead><tr><th>Indicador</th><th>Meta proposta</th><th>Como acompanhar</th></tr></thead><tbody><tr><td>Contatos profissionais relevantes convidados</td><td>Até 10</td><td>Registro manual de convites</td></tr><tr><td>Respostas com interesse</td><td>5</td><td>Contagem de interessados, sem confundir com curtidas</td></tr><tr><td>Demonstrações realizadas</td><td>3</td><td>Agenda e anotação de presença</td></tr><tr><td>Potencial participante de piloto</td><td>1</td><td>Manifestação explícita de interesse e próximo passo combinado</td></tr><tr><td>Feedbacks sobre uso e problema</td><td>3</td><td>Resumo das conversas</td></tr></tbody></table></div>
+<p>São metas de teste, sem garantia de resultado. Registrar também alcance e interações que os próprios canais disponibilizarem, mas priorizar conversas qualificadas.</p>
+<p><strong>Conversão convite → resposta:</strong> respostas interessadas ÷ convites entregues × 100.</p>
+<p><strong>Conversão demonstração → interesse em piloto:</strong> interessados em piloto ÷ demonstrações realizadas × 100.</p>
+<p><strong>Custo de aquisição:</strong> não chamar interessado de cliente adquirido. CAC só pode ser calculado se houver clientes conquistados e custos efetivamente medidos. Sem clientes, informar “não aplicável”.</p>
+<h4>Modelo de registro manual</h4>
+<div class="table-wrap"><table><thead><tr><th>Data</th><th>Canal</th><th>Contato / empresa ou código</th><th>Ação realizada</th><th>Resposta</th><th>Demonstração</th><th>Próximo passo</th></tr></thead><tbody><tr><td>A preencher</td><td>A preencher</td><td>A preencher</td><td>A preencher</td><td>A preencher</td><td>A preencher</td><td>A preencher</td></tr></tbody></table></div>
+<p>Manter informações de contato fora da documentação pública do trabalho. Na apresentação, usar totais e relatos sem identificação, salvo autorização da pessoa.</p>
+<h3>10. Demonstração de 10 minutos</h3>
+<ol><li><strong>2 min:</strong> perguntar como a operação mede as esperas atualmente e onde sente dificuldade.</li><li><strong>3 min:</strong> mostrar chegada/saída, a exclusão da partida e o histórico de um roteiro fictício.</li><li><strong>2 min:</strong> mostrar dashboard por período, percentual da jornada e custo estimado de combustível.</li><li><strong>2 min:</strong> perguntar se o registro cabe na rotina, qual indicador seria mais útil e o que falta.</li><li><strong>1 min:</strong> combinar um próximo passo se houver interesse, sem prometer funcionalidades ainda ausentes.</li></ol>
+<p>Não prometer economia automática: o sistema mede e organiza informações para apoiar decisões. O custo apresentado é estimativa de combustível do trajeto; minutos parados não são convertidos automaticamente em reais.</p>
+<h3>11. Avaliação e ajustes</h3>
+<ul><li>Se não houver respostas até o dia 7, revisar a clareza da mensagem e a relevância dos contatos, sem aumentar disparos indiscriminadamente.</li><li>Se houver respostas, mas nenhuma demonstração, reduzir a dificuldade de agendamento e mostrar um trecho curto do produto.</li><li>Se houver demonstrações sem interesse em piloto, registrar os motivos e revisar problema, público ou fluxo antes de gastar com anúncios.</li><li>Se houver interesse, definir um piloto acompanhado e suas condições; não divulgar a empresa como cliente antes disso.</li></ul>
+<h3>12. O que apresentar ao professor</h3>
+<p><strong>Entrega planejada:</strong> conceito da campanha, público, justificativa da estratégia, textos das peças, roteiro de vídeo, cronograma, orçamento e métricas. As fontes estão neste Markdown e na página Documentação do trabalho.</p>
+<p><strong>Após execução real, se a equipe realizá-la:</strong> anexar capturas das publicações, quantidades de respostas, demonstrações e aprendizados. Separar claramente metas de resultados, sem inventar alcance, clientes, economia ou depoimentos.</p></div></details></div><p><a class="download" href="/campanha">Abrir landing page da campanha ↗</a></p></section><section class="docs-section" id="apoio"><div class="section-heading"><span>05</span><div><h2>Operação e validação</h2><p>Como executar, apresentar e verificar o projeto.</p></div></div><details class="doc-document"><summary><span><strong>Como rodar o projeto</strong><small>Pré-requisitos, comandos, endereços, perfis de acesso e solução de problemas.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/README.md" download>Baixar original .md ↓</a><h2>RotaClara</h2>
+<p>MVP acadêmico de monitoramento de tempo parado em roteiros de entrega. Engenharia de Software II, Trabalho 2.</p>
+<h3>Como rodar o projeto</h3>
+<h4>1. Pré-requisitos</h4>
+<ul><li><strong>Python 3.10 ou superior</strong>, com SQLite (incluído na instalação padrão).</li><li>Navegador atualizado.</li><li>Internet para os gráficos via CDN e as imagens dos diagramas PlantUML.</li></ul>
+<p>Não é necessário instalar Node.js, npm, Java, PlantUML ou pacotes com pip. O backend usa apenas a biblioteca padrão do Python. Sem internet, a coleta e os dados locais continuam disponíveis enquanto o servidor estiver rodando; os gráficos têm alternativa nativa e os diagramas mantêm o código-fonte para consulta.</p>
+<p>Confira o Python no terminal:</p>
+<pre><code>python3 --version</code></pre>
+<p>No Windows, use <code>py --version</code> e substitua <code>python3</code> por <code>py</code> nos comandos abaixo. Se o sistema só reconhecer <code>python</code>, confira se a versão é 3.10+ antes de usá-lo.</p>
+<h4>2. Abra o terminal dentro da pasta <code>atv2/</code></h4>
+<p>Os comandos abaixo devem ser executados com o terminal já aberto na pasta <code>atv2/</code>, onde estão <code>server.py</code>, <code>schema.sql</code> e este README. Não é necessário informar o caminho completo do computador.</p>
+<p>Em outro computador, use o caminho onde você salvou ou extraiu a pasta do projeto.</p>
+<h4>3. Inicie com dados de demonstração</h4>
+<pre><code>python3 server.py --demo</code></pre>
+<p>No Windows:</p>
+<pre><code>py server.py --demo</code></pre>
+<p>Mantenha esse terminal aberto. Quando aparecer <code>RotaClara: http://127.0.0.1:8000</code>, o servidor está pronto. A opção <code>--demo</code> cria pessoas e roteiros fictícios apenas quando a base ainda não possui motoristas. Ela não apaga nem duplica os dados existentes.</p>
+<h4>4. Abra no navegador</h4>
+<div class="table-wrap"><table><thead><tr><th>Página</th><th>Endereço</th></tr></thead><tbody><tr><td>Aplicativo</td><td>[http://127.0.0.1:8000](http://127.0.0.1:8000)</td></tr><tr><td>Documentação e diagramas</td><td>[http://127.0.0.1:8000/documentacao](http://127.0.0.1:8000/documentacao)</td></tr><tr><td>Campanha de divulgação</td><td>[http://127.0.0.1:8000/campanha](http://127.0.0.1:8000/campanha)</td></tr></tbody></table></div>
+<p>O rodapé do aplicativo e da campanha possui o link <strong>Documentação do trabalho</strong>. Não abra <code>index.html</code> diretamente: o aplicativo precisa da API do servidor.</p>
+<h4>5. Entre com um dos perfis</h4>
+<div class="table-wrap"><table><thead><tr><th>Perfil</th><th>Usuário na demonstração</th><th>Acesso</th></tr></thead><tbody><tr><td>Administrador</td><td><code>admin</code></td><td>Todos os cadastros, roteiros, parâmetros e auditoria</td></tr><tr><td>Gerente</td><td><code>gerente</code></td><td>Motoristas e roteiros da própria equipe, parâmetros e correções</td></tr><tr><td>Motorista</td><td><code>motorista</code></td><td>Próprios roteiros, coleta, dashboard e histórico</td></tr></tbody></table></div>
+<p><strong>Senhas:</strong> no primeiro início de uma base nova, a senha do <code>admin</code> aparece no terminal. As senhas aleatórias de <code>gerente</code> e <code>motorista</code> aparecem no terminal ao criar a demonstração e são salvas em <code>data/credenciais-demo.txt</code>. Guarde a senha inicial do administrador. Reiniciar o servidor não redefine as senhas; em uma base já existente, use as credenciais definidas quando ela foi criada.</p>
+<p>Para trocar de perfil, clique em <strong>Sair da conta</strong> e entre novamente.</p>
+<h4>6. Encerre ou reinicie</h4>
+<p>Pressione <strong>Ctrl+C</strong> no terminal para encerrar. Para iniciar novamente, repita <code>python3 server.py --demo</code>. O banco <code>data/rotaclara.db</code> preserva os cadastros e o histórico.</p>
+<h3>Rodar sem dados de demonstração</h3>
+<p>Em uma pasta nova, execute <code>python3 server.py</code> sem <code>--demo</code>. Isso cria somente o administrador e os parâmetros padrão. Cadastre primeiro gerente → motorista → roteiro.</p>
+<p>Se já existe uma base e você quer testar uma nova sem alterar a anterior, informe outro arquivo. No macOS/Linux:</p>
+<pre><code>ROTACLARA_DB=data/nova-base.db python3 server.py --port 8001</code></pre>
+<p>No Windows PowerShell:</p>
+<pre><code>$env:ROTACLARA_DB = &quot;data/nova-base.db&quot;
+py server.py --port 8001</code></pre>
+<p>Nesse exemplo, abra <code>http://127.0.0.1:8001</code>. A variável opcional <code>ROTACLARA_ADMIN_PASSWORD</code> define a senha inicial do administrador <strong>somente na criação de uma base sem usuários</strong>; ela não redefine contas existentes. Para voltar à base padrão no PowerShell, abra um novo terminal ou remova a variável com <code>Remove-Item Env:ROTACLARA_DB</code>.</p>
+<h3>Problemas comuns</h3>
+<div class="table-wrap"><table><thead><tr><th>Situação</th><th>Como resolver</th></tr></thead><tbody><tr><td><code>python3</code> não encontrado</td><td>No Windows, tente <code>py</code>; em outros sistemas, confira <code>python --version</code> ou instale Python 3.10+</td></tr><tr><td>Porta já em uso</td><td>Encerre a execução anterior com Ctrl+C ou use <code>python3 server.py --port 8001</code></td></tr><tr><td>Navegador não conecta</td><td>Confirme que o servidor continua aberto e que a porta da URL corresponde à do terminal</td></tr><tr><td>Não aparece roteiro de hoje</td><td>Confira a data do filtro. A carga demo usa o dia em que foi criada; nos dias seguintes, crie um novo roteiro</td></tr><tr><td>Não consegue iniciar roteiro</td><td>O roteiro precisa estar planejado para a data atual de Brasília</td></tr><tr><td>Gerente não vê outra equipe</td><td>É o controle de acesso esperado; entre como administrador para ver todos</td></tr><tr><td>Diagrama não aparece</td><td>Confira internet/acesso a www.plantuml.com; abra o código ou baixe o .puml na mesma página</td></tr><tr><td>Senha antiga continua valendo</td><td>As variáveis de inicialização não alteram usuários existentes; use a senha original ou uma base de teste separada</td></tr></tbody></table></div>
+<h3>Entregas, conforme o quadro da aula</h3>
+<div class="table-wrap"><table><thead><tr><th>Parte</th><th>Conteúdo</th><th>Arquivos</th></tr></thead><tbody><tr><td>1 — Projeto preliminar</td><td>Casos de uso completos, decisões, atores, rastreabilidade</td><td><code>docs/01-projeto-preliminar.md</code></td></tr><tr><td>1 — Diagramas UML</td><td>Casos de uso, classes conceituais e robustez UC01–UC04</td><td><code>docs/diagramas/*.puml</code></td></tr><tr><td>Complemento — Projeto detalhado</td><td>Componentes, implantação, classes detalhadas, objetos e modelo relacional</td><td><code>docs/diagramas/*.puml</code></td></tr><tr><td>2 — Interface e interação</td><td>Dashboard dia/mês/período, coleta, equipe, parâmetros, histórico e auditoria</td><td><code>static/index.html</code>, <code>static/app.js</code>, <code>static/style.css</code></td></tr><tr><td>3 — Persistência</td><td>Banco SQL, API, regras de negócio e testes</td><td><code>schema.sql</code>, <code>server.py</code>, <code>business.py</code>, <code>tests/</code></td></tr><tr><td>Marca e campanha</td><td>Cinco nomes, slogans, justificativa, identidade visual, pitch, peças, plano de 14 dias, orçamento e métricas</td><td><code>docs/04-campanha-marketing.md</code>, <code>static/campanha.html</code></td></tr><tr><td>Apoio</td><td>Execução, apresentação, proteção de dados e limitações</td><td><code>docs/02-operacao-e-privacidade.md</code>, <code>docs/03-validacao.md</code></td></tr></tbody></table></div>
+<p>Preencha nomes e matrículas dos integrantes na documentação antes de entregar. Os dados demonstrativos são fictícios.</p>
+<h3>PlantUML</h3>
+<p>Os <strong>11 diagramas</strong> estão em <code>docs/diagramas</code>:</p>
+<ol><li><code>casos-de-uso.puml</code></li><li><code>classes-conceitual.puml</code></li><li><code>robustez-uc01.puml</code></li><li><code>robustez-uc02.puml</code></li><li><code>robustez-uc03.puml</code></li><li><code>robustez-uc04.puml</code></li><li><code>modelo-relacional.puml</code></li><li><code>componentes.puml</code></li><li><code>implantacao.puml</code></li><li><code>classes-detalhadas.puml</code></li><li><code>objetos.puml</code></li></ol>
+<p>Copie o conteúdo completo, incluindo <code>@startuml</code> e <code>@enduml</code>, para um editor PlantUML, como PlantText. Os 11 diagramas foram renderizados e conferidos pelo serviço PlantUML. O modelo relacional foi corrigido para declarar os atributos em linhas separadas da abertura de cada entidade. Também podem ser abertas em uma extensão PlantUML já instalada no editor. Não é necessário Mermaid.</p>
+<h3>Regras principais</h3>
+<ul><li>Partida sempre com tempo zero.</li><li>Demais paradas: saída − chegada; minutos fracionários preservados.</li><li>Total: soma de paradas encerradas, excluindo partida.</li><li>Combustível: distância × valor/litro ÷ km/litro.</li><li>Jornada inicial de 8 h. Indicador agregado usa as jornadas de cada motorista/data com roteiro no período.</li><li>Um roteiro por motorista e data; pontos numerados em ordem.</li><li>Valores históricos são copiados para o roteiro. Alterar parâmetros não recalcula o passado.</li><li>Correção de ponto exige gerente/admin e justificativa; registra antes/depois e recalcula o total.</li></ul>
+<h3>Testar</h3>
+<pre><code>python3 -m unittest discover -s tests -v
+python3 tests/benchmark.py</code></pre>
+<p>Os testes usam bancos temporários e não alteram os dados da demonstração. O benchmark cobre 12 meses, 3.650 roteiros e 36.500 pontos; mede backend local, sem rede ou renderização.</p>
+<h3>Exportação</h3>
+<p>Em Histórico, aplique período, motorista e busca. <strong>Exportar CSV</strong> baixa os pontos filtrados. <strong>Imprimir / salvar PDF</strong> abre o diálogo do navegador com o mesmo recorte; selecione Salvar em PDF. Os horários do CSV são UTC (ISO 8601); a tela e a impressão usam Brasília.</p>
+<h3>Dependências e implantação</h3>
+<p>Chart.js <strong>4.4.8</strong> é carregado de <code>https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js</code>. Não há npm, etapa de build ou download de biblioteca para rodar o servidor. Se a CDN não carregar, os gráficos nativos e tabelas permanecem disponíveis.</p>
+<p>A execução é local em <code>127.0.0.1</code>; não houve publicação. Há manifesto PWA, mas não há coleta offline. Consulte as limitações e requisitos de implantação real em <code>docs/02-operacao-e-privacidade.md</code>.</p>
+<p>Não versionar banco, senhas, documentos pessoais, sessões ou credenciais. O <code>.gitignore</code> cobre os arquivos locais de dados.</p>
+<h3>Atualizar a documentação do site</h3>
+<p>Os textos originais ficam em <code>docs/*.md</code> e os diagramas em <code>docs/diagramas/*.puml</code>. Depois de editá-los, gere novamente a página:</p>
+<pre><code>python3 scripts/build_docs.py</code></pre>
+<p>O comando também incorpora este README e o esquema SQL. Ele não acessa a rede nem exige pacotes extras. Atualize a página no navegador após gerar; mudanças em <code>server.py</code> exigem reiniciar o servidor.</p>
+<h3>Preferência de dependências</h3>
+<p>Priorizar CDN ou serviço de renderização externo quando adequado, mantendo as fontes locais. Chart.js usa jsDelivr com versão fixa; os diagramas usam o serviço PlantUML. A página de documentação envia o texto dos diagramas acadêmicos ao serviço para renderizar, sem enviar dados do banco ou credenciais.</p></div></details><details class="doc-document"><summary><span><strong>Operação e proteção de dados</strong><small>Execução local, roteiro de demonstração e limitações do MVP.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/02-operacao-e-privacidade.md" download>Baixar original .md ↓</a><h2>Operação, proteção de dados e demonstração</h2>
+<h3>Execução local</h3>
+<p>Python 3.10 ou superior. Nenhuma biblioteca extra é necessária para rodar o aplicativo. Na pasta do projeto, executar <code>python3 server.py --demo</code> e abrir http://127.0.0.1:8000. O primeiro início imprime usuário admin e senha aleatória. A opção --demo cria pessoas e roteiros fictícios e grava as credenciais de gerente e motorista em data/credenciais-demo.txt, com permissão restrita. Não enviar esse arquivo, o banco ou senhas para repositórios públicos.</p>
+<p>Sem --demo o banco começa vazio, com o administrador e parâmetros padrão. Cadastre primeiro um gerente, depois os motoristas e seus roteiros. A variável ROTACLARA_ADMIN_PASSWORD pode definir a senha inicial; só é usada quando não há usuário. ROTACLARA_DB permite apontar para outro arquivo de banco. O servidor aceita --port para mudar a porta e escuta apenas no computador local.</p>
+<p>Banco: data/rotaclara.db. O histórico sobrevive à reinicialização. Parâmetros antigos ficam copiados nos roteiros. O arquivo pode ser copiado para backup com a aplicação encerrada; alternativamente, usar a API de backup do SQLite para consistência enquanto estiver em uso. Testar restauração antes de depender de backups.</p>
+<h4>Parar o servidor</h4>
+<p>Volte ao terminal onde aparece <code>RotaClara: http://127.0.0.1:8000</code> e pressione <strong>Ctrl+C</strong> uma vez. O comando interrompe o servidor com segurança e libera a porta. A base <code>data/rotaclara.db</code> permanece salva; parar o servidor não apaga os dados. Para confirmar, atualize a página: ela não conseguirá mais conectar. Para rodar novamente, execute <code>python3 server.py --demo</code>.</p>
+<h3>Roteiro de demonstração de 5–7 minutos</h3>
+<ol><li>Abrir /campanha e apresentar a dor e o nome RotaClara.</li><li>Entrar como gerente, selecionar Mês e explicar os indicadores do conjunto fictício.</li><li>Abrir Roteiros e coleta, escolher Dia atual e iniciar o roteiro planejado.</li><li>Registrar chegada e saída na partida. Demonstrar tempo parado zero.</li><li>Registrar chegada no segundo ponto, aguardar alguns segundos e registrar saída. O banco mantém minutos fracionários; o cartão formata horas/minutos inteiros.</li><li>Consultar Histórico, buscar Rua Peru e exportar CSV. Usar Imprimir / salvar PDF para gerar o mesmo recorte.</li><li>Corrigir um endereço com justificativa e abrir Auditoria para mostrar antes/depois.</li><li>Alterar combustível e jornada e explicar que os roteiros anteriores mantêm os parâmetros originais.</li><li>Entrar como motorista e demonstrar ausência de acesso a correções e às rotas de outra pessoa.</li><li>Mostrar fontes PlantUML, esquema SQL e resultado dos testes.</li></ol>
+<p>Os roteiros de hoje na carga demo ficam planejados e sem horários; os seis dias anteriores possuem registros encerrados. As pessoas são fictícias e o endereço do exemplo vem do enunciado.</p>
+<h3>Tratamento de dados no MVP</h3>
+<p>Dados tratados: nome, telefone, documento e veículo dos motoristas; nome, telefone e e-mail de gerentes; endereço/coordenadas das entregas; horários; eventos de auditoria e credenciais derivadas. Finalidade projetada: operação e análise de roteiros. Não há telemetria contínua, analytics, anúncios nem envio automatizado de mensagens.</p>
+<p>Medidas implementadas: autorização no servidor por perfil/equipe, validação de entradas, consultas parametrizadas, senhas com PBKDF2 e salt, tokens aleatórios armazenados por hash, cookie HttpOnly/SameSite, proteção de origem em mutações, auditoria de pontos, ausência de cache de respostas pessoais e permissão 0600 no banco. Chart.js é carregado de CDN pública, portanto o navegador faz uma requisição externa para obter a biblioteca; os dados de rotas não são enviados a essa CDN pelo código do aplicativo.</p>
+<p>Pendências organizacionais para uso real: definir controlador/operadores e finalidade específica; documentar a base legal aplicável com responsável competente; informar os profissionais; estabelecer retenção e descarte, canal de atendimento aos titulares, procedimento de correção/eliminação e resposta a incidentes; limitar acesso a backups; definir contratos e proteção do ambiente. Não se declara conformidade integral apenas pela existência do código. Este documento é um registro de decisões de projeto, não um parecer jurídico.</p>
+<p>A versão acadêmica não possui eliminação/anomização de pessoas pela interface nem política automática de retenção. Documentos são armazenados em texto no banco protegido por permissões locais, sem criptografia de campo; para dados reais, avaliar criptografia em repouso e controles do sistema operacional. A auditoria preserva endereços e horários antigos, devendo ter retenção definida.</p>
+<h3>Limitações técnicas explícitas</h3>
+<ul><li>Servidor HTTP de biblioteca padrão, adequado à demonstração local. Produção exige servidor/reverse proxy apropriado e HTTPS, além de ROTACLARA_SECURE_COOKIE=1.</li><li>Interface adaptável e manifesto PWA; coleta requer conexão com servidor. Service worker não faz cache de dados pessoais nem sincronização offline.</li><li>Chart.js por CDN; gráficos nativos e valores acessíveis funcionam se a biblioteca não carregar. Sem mapa ou cálculo automático de distância.</li><li>Relatório PDF usa o diálogo de impressão do navegador, não um endpoint de geração no servidor.</li><li>Um roteiro por motorista/data; chegada dentro dessa data e saída posterior permitida. Não existe divisão de tempo entre dias.</li><li>Não há recuperação de senha, MFA, alteração/exclusão de contas ou gestão completa de frota. O limite de tentativas é mantido em memória e reinicia com o processo.</li><li>Auditoria completa no banco, últimas 500 ocorrências na tela. O dono do arquivo de banco continua capaz de alterar o esquema; triggers não substituem proteção de infraestrutura.</li></ul></div></details><details class="doc-document"><summary><span><strong>Registro de validação</strong><small>Testes de negócio e API, desempenho e verificação da interface.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/03-validacao.md" download>Baixar original .md ↓</a><h2>Registro de validação — 16/09/2026</h2>
+<h3>Testes automatizados</h3>
+<p>Comando: <code>python3 -m unittest discover -s tests -v</code>.</p>
+<p>Resultado: <strong>20 testes passaram</strong>. Testes do handler HTTP são executados em memória, sem sockets, usando os métodos reais de autenticação, autorização, validação e persistência em bancos SQLite temporários.</p>
+<p>Cobertura verificada:</p>
+<ul><li>RN01: partida com horário continua com zero minutos.</li><li>RN02/RN03: roteiros A=75, B=41, C=45 minutos; minutos fracionários preservados.</li><li>RN04: 75/480 = 15,625%; agregação de dois motoristas usa 960 minutos.</li><li>RN07: 100 km × R$ 6/l ÷ 10 km/l = R$ 60.</li><li>Rejeição de saída sem chegada, horários invertidos, datetime sem fuso, rendimento zero, negativo, NaN e infinito.</li><li>Diferença temporal correta ao atravessar meia-noite com fusos diferentes.</li><li>Login, proteção de origem, motorista impedido de alterar parâmetros ou ler auditoria.</li><li>Isolamento de motorista e gerente da outra equipe.</li><li>Coleta exige início do roteiro e saída do ponto anterior; última saída conclui o roteiro.</li><li>Correção auditada, exportação filtrada e proteção contra fórmulas no CSV.</li><li>Triggers bloqueiam exclusão da auditoria.</li><li>Mudanças de parâmetros não alteram roteiros históricos.</li><li>Duplicidade motorista/data rejeitada; ponto inválido desfaz toda a criação do roteiro.</li><li>Intervalo invertido rejeitado; dados persistidos podem ser consultados em nova conexão.</li></ul>
+<h3>Desempenho do backend</h3>
+<p>Comando: <code>python3 tests/benchmark.py</code>.</p>
+<p>Base sintética de 12 meses: 10 motoristas, 3.650 roteiros, 36.500 pontos. Cinco consultas com agregação e serialização JSON: 0,1181; 0,1218; 0,1198; 0,1209; 0,1207 segundos. Pior tempo: <strong>0,1218 s</strong> nesta máquina. Payload completo aproximado: <strong>11 MB</strong>.</p>
+<p>Esta medição atende ao limite de 3 segundos para a parte de consulta local na carga ensaiada. Não mede transporte HTTP nem renderização de milhares de linhas. Portanto não comprova, isoladamente, RNF03 ponta a ponta em implantação real; bases maiores devem receber paginação, agregação no servidor e ensaios adicionais de interface/rede.</p>
+<h3>Verificação no navegador</h3>
+<ul><li>Login real com administrador e dashboard exibindo dados da base de demonstração.</li><li>Gráficos de barras e rosca carregados via Chart.js/CDN.</li><li>Navegação até Roteiros e coleta, filtro Dia e abertura do formulário de montagem.</li><li>Viewport móvel de 390 × 844: página sem transbordamento horizontal; campos e botões se reorganizam verticalmente.</li><li>Estrutura de impressão existente no CSS; a seleção final de Salvar em PDF depende do navegador e não foi automatizada.</li><li>Sintaxe de Python e JavaScript verificada.</li></ul>
+<h3>Artefatos</h3>
+<p>11 arquivos PlantUML editáveis, documentação de casos de uso e campanha, esquema SQL, código do aplicativo, testes e guia de execução. Os 11 arquivos PlantUML foram renderizados e validados pelo serviço PlantUML no navegador, sem instalação local. O modelo relacional foi corrigido: o primeiro atributo agora fica em nova linha após a abertura de cada entidade. A página /documentacao reúne imagens, códigos-fonte, downloads e textos completos, com link nos rodapés.</p></div></details></section><footer><span>RotaClara · Documentação acadêmica</span><span>Feito por Gustavo Lopes e Heitor Vieira</span><a href="#">Voltar ao topo ↑</a><a href="/">Abrir aplicativo</a></footer></main><div id="toast" role="status" aria-live="polite" hidden></div></body></html>

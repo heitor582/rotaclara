@@ -1,0 +1,74 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #167454
+skinparam classBackgroundColor #F3F6F7
+skinparam classBorderColor #102B36
+title RotaClara — Classes conceituais
+class Gerente {
+  id: Identificador
+  nome: Texto
+  telefone: Texto
+  email: Texto
+}
+class Motorista {
+  id: Identificador
+  nome: Texto
+  telefone: Texto
+  documento: Texto
+  veiculo: Texto
+  kmPorLitro: Decimal
+}
+class Roteiro {
+  id: Identificador
+  data: Data
+  distanciaTotal: Decimal
+  /tempoTotalParado: Minutos
+  /custoEstimado: Moeda
+  status: EstadoRoteiro
+  valorCombustivelAplicado: Moeda
+  rendimentoAplicado: Decimal
+  jornadaAplicada: Horas
+}
+class Ponto {
+  id: Identificador
+  endereco: Texto
+  latitude: Decimal
+  longitude: Decimal
+  chegada: DataHora [0..1]
+  saida: DataHora [0..1]
+  /tempoParadoMinutos: Decimal
+  ordemSequencial: Inteiro
+}
+class Parametro {
+  valorCombustivel: Moeda
+  kmPorLitroPadrao: Decimal
+  /custoPorKm: Moeda
+  jornadaPadraoHoras: Decimal = 8
+  excluirPartida: Booleano = verdadeiro
+  regraCalculo: Texto = saidaMenosChegada
+}
+Gerente "1" -- "0..*" Motorista : supervisiona >
+Motorista "1" -- "0..*" Roteiro : executa >
+Roteiro "1" *-- "2..*" Ponto : contém em ordem >
+Parametro "1" -- "0..*" Roteiro : fornece valores iniciais >
+note right of Roteiro
+  RN05: um motorista e uma data.
+  Decisão do MVP: no máximo um roteiro
+  por motorista/dia; pode atravessar meia-noite.
+  Parâmetros copiados preservam o histórico.
+end note
+note bottom of Ponto
+  RN01: ordem 1 tem tempo zero.
+  RN02: tempo = saída - chegada.
+  RN03: total soma pontos a partir do 2.
+  Ponto é uma visita pertencente a um roteiro,
+  não um endereço compartilhado mutável.
+end note
+note bottom of Parametro
+  Custo/km = combustível / rendimento.
+  Veículo do motorista prevalece sobre o padrão.
+  RN01–RN03 são invariantes da especificação.
+end note
+@enduml

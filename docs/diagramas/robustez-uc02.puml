@@ -1,0 +1,35 @@
+@startuml
+left to right direction
+title UC02 — Registrar chegada/saída e calcular tempo parado
+actor "Motorista / Gerente / Administrador" as A
+boundary "Tela de coleta" as T
+control "Autorizar e validar\nroteiro, sequência e horário" as V
+control "Registrar chegada/saída" as C
+control "Calcular tempo parado\nRN01 + RN02 + RN03" as CALC
+entity "Motorista" as M
+entity "Ponto" as P
+entity "Roteiro" as R
+entity "Auditoria" as LOG
+A -- T
+T -- V
+V -- M
+V -- R
+V -- P
+V -- C
+C -- P
+C -- LOG
+C -- CALC
+CALC -- P
+CALC -- R
+note bottom of CALC
+  Ordem = 1: zero minutos, mesmo com horários.
+  Ordem > 1: (saída - chegada) em minutos.
+  Sem saída: total persistido zero; timer só na tela.
+  Atualiza total do roteiro na mesma transação.
+end note
+note bottom of V
+  Rejeita saída sem chegada, repetição,
+  sequência incompleta e acesso fora da equipe.
+  Última saída conclui o roteiro.
+end note
+@enduml

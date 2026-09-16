@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#102b36">
+    <meta name="description" content="RotaClara: monitoramento do tempo parado em roteiros de entrega.">
+    <title>RotaClara • Operação</title>
+    <link rel="icon" href="/icon.svg">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+    <script src="/app.js" defer></script>
+</head>
+
+<body>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <section id="login-screen" class="login-screen">
+        <div class="login-story"><a class="brand" href="/campanha"><span class="brand-icon">r.</span>
+                rota<span>clara</span></a>
+            <div>
+                <div class="eyebrow">VISIBILIDADE PARA CADA ENTREGA</div>
+                <h1>O tempo parado<br>também conta.</h1>
+                <p>Entenda onde sua operação espera.<br>Planeje o próximo trajeto com clareza.</p>
+                <div class="route-art" aria-hidden="true"><span>01</span><i></i><span>02</span><i></i><span>03</span>
+                </div>
+            </div><small>Projeto acadêmico • Engenharia de Software II</small>
+        </div>
+        <div class="login-panel">
+            <form id="login-form">
+                <div class="eyebrow">SUA OPERAÇÃO, EM UM LUGAR</div>
+                <h2>Bem-vindo de volta</h2>
+                <p class="muted">Entre com a conta da sua equipe.</p><label>Usuário<input name="login"
+                        autocomplete="username" required autofocus></label><label>Senha<input name="senha"
+                        type="password" autocomplete="current-password" required></label><button
+                    class="primary wide">Entrar na operação <span>→</span></button>
+                <p id="login-error" class="error" role="alert"></p><small>O administrador fornece as credenciais de
+                    acesso.</small><a class="text-link" href="/campanha">Conheça a RotaClara ↗</a>
+            </form>
+        </div>
+    </section>
+    <div id="app" hidden>
+        <aside class="sidebar"><a href="/" class="brand"><span class="brand-icon">r.</span> rota<span>clara</span></a>
+            <div class="nav-label">OPERAÇÃO</div>
+            <nav aria-label="Principal"><button data-view="dashboard" class="active">◫ <span>Visão
+                        geral</span></button><button data-view="coleta">⌁ <span>Roteiros e coleta</span></button><button
+                    data-view="historico">◷ <span>Histórico</span></button><button data-view="pessoas" data-manager>♙
+                    <span>Equipe</span></button><button data-view="parametros" data-manager>⚙
+                    <span>Parâmetros</span></button><button data-view="auditoria" data-manager>≡
+                    <span>Auditoria</span></button></nav>
+            <div class="sidebar-bottom">
+                <div class="account"><b id="user-name"></b><small id="user-role"></small></div><button id="logout"
+                    class="quiet">Sair da conta ↗</button><a href="/campanha">Sobre a RotaClara</a>
+            </div>
+        </aside>
+        <main>
+            <header class="topbar"><span>PAINEL DA OPERAÇÃO</span><span id="today-label"></span></header>
+            <div class="page">
+                <div class="heading">
+                    <div>
+                        <div class="eyebrow">ROTACLARA / <span id="breadcrumb">VISÃO GERAL</span></div>
+                        <h1 id="page-title">Cada minuto, à vista.</h1>
+                        <p id="page-subtitle">Tempo parado e custo estimado dos seus roteiros.</p>
+                    </div><button id="refresh" class="secondary">↻ Atualizar</button>
+                </div>
+                <section id="filters" class="filters" aria-label="Filtros">
+                    <div class="segmented" role="group" aria-label="Recorte"><button
+                            data-period="dia">Dia</button><button data-period="mes" class="active">Mês</button><button
+                            data-period="periodo">Período</button></div><label id="day-filter" hidden>Dia<input id="day"
+                            type="date"></label><label id="month-filter">Mês<input id="month"
+                            type="month"></label><label id="start-filter" hidden>De<input id="start"
+                            type="date"></label><label id="end-filter" hidden>Até<input id="end"
+                            type="date"></label><label>Motorista<select id="driver-filter">
+                            <option value="">Todos os motoristas</option>
+                        </select></label><button id="apply-filter" class="primary">Aplicar filtros</button>
+                </section>
+                <div id="view"></div>
+                <footer>RotaClara • Tempo com endereço, operação com clareza.<span>Horários em Brasília • Dados do banco
+                        local</span><span>Feito por Gustavo Lopes e Heitor Vieira</span><a href="/documentacao">Documentação do trabalho ↗</a></footer>
+            </div>
+        </main>
+    </div>
+    <dialog id="edit-dialog">
+        <form id="edit-form">
+            <div class="dialog-heading">
+                <h2>Corrigir ponto</h2><button type="button" id="close-dialog" class="quiet"
+                    aria-label="Fechar">✕</button>
+            </div>
+            <p class="muted">A alteração e sua justificativa ficam registradas na auditoria.</p><input name="id"
+                type="hidden"><label>Endereço<input name="endereco" required maxlength="200"></label>
+            <div class="two"><label>Latitude<input name="latitude" type="number" step="any" min="-90" max="90"
+                        required></label><label>Longitude<input name="longitude" type="number" step="any" min="-180"
+                        max="180" required></label></div><label>Chegada<input name="data_hora_chegada"
+                    type="datetime-local" step="1"></label><label>Saída<input name="data_hora_saida"
+                    type="datetime-local" step="1"></label><label>Motivo<textarea name="motivo" required
+                    maxlength="500"></textarea></label><button class="primary wide">Salvar correção</button>
+        </form>
+    </dialog>
+</body>
+
+</html>

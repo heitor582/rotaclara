@@ -1,0 +1,24 @@
+@startuml
+left to right direction
+title UC03 — Consultar dashboard
+actor "Motorista / Gerente / Administrador" as A
+boundary "Dashboard e filtros" as T
+control "Autorizar e validar período" as V
+control "Consultar e agregar indicadores" as C
+entity "Motorista" as M
+entity "Roteiro" as R
+entity "Ponto" as P
+A -- T
+T -- V
+V -- M
+V -- C
+C -- R
+C -- P
+note bottom of C
+  Dia, mês ou intervalo inclusivo de datas de roteiro.
+  Base = soma das jornadas de cada motorista/dia com roteiro.
+  Percentual = minutos parados / minutos da base * 100.
+  Sem roteiro: zero, sem divisão por zero.
+  Custos e jornadas vêm dos snapshots históricos.
+end note
+@enduml

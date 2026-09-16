@@ -1,0 +1,3 @@
+# Sem dependências Python externas.
+# Requer Python 3.10+ com sqlite3 (incluído na distribuição padrão).
+# Gráficos: Chart.js 4.4.8 via CDN no navegador.

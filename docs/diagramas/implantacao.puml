@@ -1,0 +1,28 @@
+@startuml
+title RotaClara — Implantação efetiva do MVP local
+node "Computador de demonstração" {
+ node "Navegador" {
+  artifact "HTML / CSS / JavaScript" as WEB
+ }
+ node "Python 3.10+\n127.0.0.1:8000" {
+  artifact "server.py" as S
+  artifact "business.py" as B
+ }
+ database "Arquivo local protegido\ndata/rotaclara.db" as DB
+}
+cloud "CDN jsDelivr\nHTTPS" as CDN
+WEB --> S : HTTP local / JSON
+WEB --> CDN : Chart.js 4.4.8
+S --> B
+S --> DB : SQLite
+note bottom of WEB
+  Layout responsivo e manifesto PWA.
+  Coleta exige conexão com o servidor.
+  Teste móvel por emulação de viewport.
+end note
+note bottom of DB
+  Implantação de produção não realizada.
+  Acesso de outros dispositivos exige configuração
+  de rede, servidor apropriado e HTTPS.
+end note
+@enduml

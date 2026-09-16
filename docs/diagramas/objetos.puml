@@ -1,0 +1,57 @@
+@startuml
+title RotaClara — Exemplo de objetos do roteiro A
+object "gerente1 : Gerente" as G {
+ nome = "Gerente exemplo"
+}
+object "motorista1 : Motorista" as M {
+ nome = "Motorista exemplo"
+ kmPorLitro = 10
+}
+object "roteiroA : Roteiro" as R {
+ data = "2026-09-15"
+ distanciaTotal = 100 km
+ tempoTotalParado = 75 min
+ custoEstimado = R$ 60,00
+ jornadaAplicada = 8 h
+ valorCombustivelAplicado = R$ 6,00/l
+}
+object "p1 : Ponto" as P1 {
+ ordem = 1
+ endereco = "Seg. Família"
+ chegada = 08:00
+ saida = 08:05
+ tempoParado = 0 min
+}
+object "p2 : Ponto" as P2 {
+ ordem = 2
+ endereco = "Rua Peru, 55"
+ chegada = 08:20
+ saida = 08:35
+ tempoParado = 15 min
+}
+object "p3 : Ponto" as P3 {
+ ordem = 3
+ endereco = "Rua X, 5"
+ chegada = 09:00
+ saida = 09:10
+ tempoParado = 10 min
+}
+object "p4 : Ponto" as P4 {
+ ordem = 4
+ endereco = "Av. João César"
+ chegada = 09:30
+ saida = 10:20
+ tempoParado = 50 min
+}
+G -- M
+M -- R
+R *-- P1
+R *-- P2
+R *-- P3
+R *-- P4
+note bottom of R
+  Tempos/endereço baseados no enunciado.
+  Horários, data, distância e preço são ilustrativos.
+  Percentual = 75 / 480 * 100 = 15,625%.
+end note
+@enduml

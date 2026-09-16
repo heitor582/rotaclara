@@ -1,0 +1,21 @@
+@startuml
+left to right direction
+title UC04 — Parametrizar custos e jornada
+actor "Gerente / Administrador" as A
+boundary "Tela de parâmetros" as T
+control "Autorizar perfil" as V
+control "Validar e salvar parâmetros" as C
+entity "Parametro" as P
+entity "Auditoria" as L
+A -- T
+T -- V
+V -- C
+C -- P
+C -- L
+note bottom of C
+  Combustível >= 0; rendimento > 0; 0 < jornada <= 24.
+  Custo/km é derivado, não somado novamente ao combustível.
+  Mudança vale para novos roteiros.
+  RN01 e RN02 permanecem obrigatórias.
+end note
+@enduml
