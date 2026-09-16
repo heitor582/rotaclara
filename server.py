@@ -120,6 +120,14 @@ def report_data(db,user,query):
     selected = query.get('motorista',[''])[0]
     if selected:
         where += ' AND r.motorista_id=?'; args.append(int(selected))
+    selected_status = query.get('status',[''])[0]
+    if selected_status:
+        if selected_status not in {'pendencias','planejado','em_andamento','concluido'}:
+            raise ValueError('Status inválido.')
+        if selected_status == 'pendencias':
+            where += " AND r.status IN ('planejado','em_andamento')"
+        else:
+            where += ' AND r.status=?'; args.append(selected_status)
     routes = [dict(r) for r in db.execute(f'SELECT r.*,m.nome motorista FROM roteiro r JOIN motorista m ON m.id=r.motorista_id WHERE {where} AND r.data BETWEEN ? AND ? ORDER BY r.data,r.id',args+[start,end])]
     points = [dict(p) for p in db.execute(f'SELECT p.*,r.data,m.nome motorista,r.motorista_id FROM ponto p JOIN roteiro r ON r.id=p.roteiro_id JOIN motorista m ON m.id=r.motorista_id WHERE {where} AND r.data BETWEEN ? AND ? ORDER BY r.data,p.roteiro_id,p.ordem_sequencial',args+[start,end])]
     search=query.get('busca',[''])[0].casefold().strip()

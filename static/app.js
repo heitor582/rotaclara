@@ -101,6 +101,7 @@ function query(search = '') {
         inicio: a,
         fim: b,
         motorista: $('#driver-filter').value,
+        status: $('#status-filter').value,
         busca: search
     }).toString();
 }
@@ -207,6 +208,14 @@ function dashboard() {
     const max = Math.max(1, ...report.dias.map(d => Math.max(d.minutos, d.jornada)));
     const best = entries[0];
     $('#view').innerHTML = `<section class="kpis" aria-label="Indicadores"><article class="kpi"><div class="kpi-label">Tempo total parado <span>◷</span></div><strong>${duration(report.total_minutos)}</strong><small>Partida excluída do cálculo</small></article><article class="kpi"><div class="kpi-label">Combustível estimado <span>↗</span></div><strong>${money(report.custo)}</strong><small>${num(report.distancia)} km em ${report.roteiros.length} roteiros</small></article><article class="kpi"><div class="kpi-label">Jornada em paradas <span>◴</span></div><strong>${num(report.percentual)}%</strong><small>Base: ${duration(report.base_minutos)} de jornada</small></article><article class="kpi"><div class="kpi-label">Roteiros no período <span>⌁</span></div><strong>${report.roteiros.length.toString().padStart(2, '0')}</strong><small>${report.roteiros.filter(r => r.status === 'concluido').length} concluídos</small></article></section><section class="grid-charts"><article class="panel"><div class="panel-header"><div><h2>Tempo parado por dia</h2><p>Minutos registrados × jornada da equipe</p></div><span class="badge neutral">${period === 'dia' ? 'Dia' : period === 'mes' ? 'Mês' : 'Período'}</span></div>${report.dias.length ? `<div class="bar-chart" role="img" aria-label="Comparativo por dia; valores detalhados na tabela abaixo">${report.dias.map(d => `<div class="bar-group" title="${dateBR(d.data)}: ${num(d.minutos)} min parados / ${num(d.jornada)} min de jornada"><div class="bar" style="height:${d.minutos / max * 85}%"></div><div class="bar limit" style="height:${d.jornada / max * 85}%"></div><small>${d.data.slice(8)}/${d.data.slice(5, 7)}</small></div>`).join('')}</div><div class="legend"><span>Tempo parado</span><span>Jornada somada</span></div><details><summary>Consultar valores do gráfico</summary><table><thead><tr><th>Dia</th><th>Parado (min)</th><th>Jornada (min)</th></tr></thead><tbody>${report.dias.map(d => `<tr><td>${dateBR(d.data)}</td><td>${num(d.minutos)}</td><td>${num(d.jornada)}</td></tr>`).join('')}</tbody></table></details>` : '<div class="empty">Sem roteiros no período.</div>'}</article><article class="panel"><div class="panel-header"><div><h2>Onde o tempo se concentra</h2><p>Distribuição das paradas por endereço</p></div></div>${total ? `<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${gradient})" role="img" aria-label="Distribuição por endereço listada ao lado"><div class="donut-hole"><b>${num(total)}</b><small>minutos</small></div></div><div class="point-legend">${entries.map((e, i) => `<div><i style="background:${colors[i]}"></i><span>${esc(e[0])}<small> · ${num(e[1])} min</small></span><b>${num(e[1] / total * 100)}%</b></div>`).join('')}</div></div>` : '<div class="empty">Nenhuma parada encerrada no período.</div>'}</article></section>${best ? `<div class="note"><b>Um ponto de atenção:</b> ${esc(best[0])} concentra ${num(best[1] / total * 100)}% do tempo parado. Use o histórico para investigar as esperas.</div>` : ''}<section class="panel"><div class="panel-header"><div><h2>Roteiros do período</h2><p>${dateBR(report.inicio)} a ${dateBR(report.fim)} · Valores estimados de combustível</p></div><button class="quiet" data-go="coleta">Ver roteiros →</button></div>${routeTable(report.roteiros)}</section><p class="muted"><small>Percentual ponderado: minutos parados ÷ jornadas dos motoristas com roteiro no período. Paradas ainda abertas aparecem na coleta e entram nos totais após a saída. O custo usa toda a distância informada, inclusive em roteiros planejados.</small></p>`;
+    const openPoints = report.pontos.filter(p => p.ordem_sequencial > 1 && p.data_hora_chegada && !p.data_hora_saida).length;
+    const incompleteRoutes = report.roteiros.filter(r => r.status !== 'concluido').length;
+    const avgCost = report.roteiros.length ? report.custo / report.roteiros.length : 0;
+    const statusCounts = ['planejado', 'em_andamento', 'concluido'].map(status => report.roteiros.filter(r => r.status === status).length);
+    const quality = document.createElement('section');
+    quality.className = 'panel quality-panel';
+    quality.innerHTML = `<div class="panel-header"><div><h2>Qualidade da coleta</h2><p>Status dos roteiros e pendências no filtro selecionado</p></div><button class="badge ${openPoints || incompleteRoutes ? 'neutral' : ''}" data-pending-filter>${openPoints + incompleteRoutes ? `${openPoints + incompleteRoutes} pendência(s) · ver` : 'Tudo em dia'}</button></div><div class="quality-grid"><div><b>${statusCounts[0]}</b><small>roteiro(s) planejado(s)</small></div><div><b>${statusCounts[1]}</b><small>roteiro(s) em andamento</small></div><div><b>${statusCounts[2]}</b><small>roteiro(s) concluído(s)</small></div><div><b>${openPoints}</b><small>parada(s) aberta(s)</small></div><div><b>${money(avgCost)}</b><small>custo médio por roteiro</small></div></div>`;
+    $('#view').prepend(quality);
 }
 
 function routes() {
@@ -288,6 +297,11 @@ $('#close-dialog').addEventListener('click', () => $('#edit-dialog').close());
 document.addEventListener('click', async e => {
     const b = e.target.closest('button');
     if (!b) return;
+    if (b.hasAttribute('data-pending-filter')) {
+        $('#status-filter').value = 'pendencias';
+        await render();
+        return;
+    }
     if (b.dataset.view) {
         view = b.dataset.view;
         await render();

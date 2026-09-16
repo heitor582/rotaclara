@@ -13,6 +13,10 @@
     font-size: 16px
 }
 
+.quality-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.quality-grid>div{background:var(--bg);border-radius:8px;padding:16px}.quality-grid b{font-size:1.5rem;display:block}.quality-grid small{display:block;margin-top:5px}
+@media(max-width:950px){.quality-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:750px){.quality-grid{grid-template-columns:1fr}}
+
 * {
     box-sizing: border-box
 }
