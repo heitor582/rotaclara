@@ -7,11 +7,14 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import time
-import server
+from rotaclara.bootstrap import PROJECT_ROOT
+from rotaclara.clock import SystemClock
+from rotaclara.repositories.report_repository import ReportRepository
+from rotaclara.services.report_service import ReportService
 
 with tempfile.TemporaryDirectory() as tmp:
     db=sqlite3.connect(Path(tmp)/'bench.db');db.row_factory=sqlite3.Row
-    db.executescript((server.ROOT/'schema.sql').read_text())
+    db.executescript((PROJECT_ROOT/'schema.sql').read_text())
     db.execute("INSERT INTO gerente VALUES (1,'Teste','0','test@example.invalid')")
     for m in range(1,11):
         db.execute('INSERT INTO motorista VALUES (?,?,?,?,?,?,?)',(m,1,f'Motorista {m}','0',f'TEST-{m}','Veiculo',10))
@@ -22,7 +25,7 @@ with tempfile.TemporaryDirectory() as tmp:
     db.commit();times=[];payload_size=0
     for _ in range(5):
         begin=time.perf_counter()
-        report=server.report_data(db,{'perfil':'administrador'},{'inicio':['2025-01-01'],'fim':['2025-12-31']})
+        report=ReportService(ReportRepository(db), SystemClock()).generate({'perfil':'administrador'},{'inicio':['2025-01-01'],'fim':['2025-12-31']})
         payload=json.dumps(report,ensure_ascii=False).encode();payload_size=len(payload)
         times.append(time.perf_counter()-begin)
     print(json.dumps({'roteiros':3650,'pontos':36500,'consultas':5,'segundos':[round(t,4) for t in times],'pior_tempo_segundos':round(max(times),4),'payload_bytes':payload_size,'meta_consulta_menor_3s':max(times)<3,'limite':'Mede consulta, agregação e serialização local; não inclui rede nem renderização do navegador.'},ensure_ascii=False,indent=2))

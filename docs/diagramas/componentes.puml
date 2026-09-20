@@ -1,26 +1,41 @@
 @startuml
 skinparam componentStyle rectangle
-title RotaClara — Arquitetura física / componentes
+title RotaClara — Componentes da implementação
 package "Cliente web" {
- [Interface HTML/CSS] as UI
- [Controlador de telas\napp.js] as JS
- [Chart.js 4.4.8\nCDN jsDelivr] as CH
+ [app.js] as Controller
+ [views.js / formatters.js] as Views
+ [api.js] as Client
+ [charts.js / reporting.js] as Charts
+ [Chart.js via CDN] as CDN
 }
-package "Servidor Python" {
- [Handler HTTP\nserver.py] as H
- [Regras puras\nbusiness.py] as B
- [Persistência / sqlite3] as SQL
+package "Servidor Python — rotaclara" {
+ [http.py] as HTTP
+ [application.py] as App
+ [controllers/] as Controllers
+ [endpoints.py] as Endpoints
+ [dependencies.py] as Dependencies
+ [services/ / security/] as Services
+ [domain.py] as Domain
+ [repositories/] as Repositories
+ [database.py] as Transactions
+ [exporters.py] as CSV
 }
-database "SQLite\nrotaclara.db" as DB
-UI --> JS : eventos
-JS --> CH : renderiza gráficos
-JS --> H : HTTP / JSON\ncookie de sessão
-H --> B : validações e cálculos
-H --> SQL : consultas parametrizadas\ne transações
-SQL --> DB : leitura / escrita
-note bottom of H
-  Autoriza cada consulta e mutação.
-  CSV gerado pelo servidor.
-  PDF via impressão no navegador.
-end note
+database SQLite as DB
+Controller --> Views
+Controller --> Charts
+Charts --> CDN
+Controller --> Client
+Client --> HTTP : HTTP / JSON
+HTTP --> App
+App --> Endpoints : resolve rota
+App --> Dependencies : monta dependências
+Dependencies --> Controllers
+App --> Controllers : executa endpoint
+Controllers --> Services
+App --> Transactions : unidade de trabalho
+Controllers --> CSV
+Services --> Domain
+Services --> Repositories
+Repositories --> DB : SQL parametrizado
+Transactions --> DB : commit / rollback
 @enduml

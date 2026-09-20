@@ -6,7 +6,7 @@ node "Computador de demonstração" {
  }
  node "Python 3.10+\n127.0.0.1:8000" {
   artifact "server.py" as S
-  artifact "business.py" as B
+  artifact "rotaclara/\nHTTP, serviços e repositórios" as B
  }
  database "Arquivo local protegido\ndata/rotaclara.db" as DB
 }
@@ -14,7 +14,7 @@ cloud "CDN jsDelivr\nHTTPS" as CDN
 WEB --> S : HTTP local / JSON
 WEB --> CDN : Chart.js 4.4.8
 S --> B
-S --> DB : SQLite
+B --> DB : SQLite
 note bottom of WEB
   Layout responsivo e manifesto PWA.
   Coleta exige conexão com o servidor.

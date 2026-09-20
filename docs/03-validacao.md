@@ -1,10 +1,10 @@
-# Registro de validação — 16/09/2026
+# Registro de validação — 20/09/2026
 
 ## Testes automatizados
 
 Comando: `python3 -m unittest discover -s tests -v`.
 
-Resultado: **20 testes passaram**. Testes do handler HTTP são executados em memória, sem sockets, usando os métodos reais de autenticação, autorização, validação e persistência em bancos SQLite temporários.
+Resultado: **33 testes Python passaram**. Testes do handler HTTP são executados em memória, sem sockets, usando os métodos reais de autenticação, autorização, validação e persistência em bancos SQLite temporários.
 
 Cobertura verificada:
 
@@ -23,15 +23,25 @@ Cobertura verificada:
 - Duplicidade motorista/data rejeitada; ponto inválido desfaz toda a criação do roteiro.
 - Intervalo invertido rejeitado; dados persistidos podem ser consultados em nova conexão.
 
+Também passaram **3 testes JavaScript** com `node --test tests/frontend.test.mjs`: agregação dos gráficos, escape de HTML e conversão de fuso no editor.
+
+Novas verificações: rollback e fechamento das conexões, escritas concorrentes sem perda de atualização, revogação de sessão no logout, senhas com espaços, correspondência exata dos endpoints, corpo e pontos inválidos, filtros de pendências e acesso aos módulos JavaScript.
+
+A separação em controladores, serviços e repositórios foi verificada novamente pela suíte completa. Os testes adicionais confirmam que somente POST /api/login é público, que caminhos parecidos com o CSV não são aceitos e que /api/me não expõe o hash da senha. A verificação no Chrome abaixo ocorreu antes desta última reorganização de arquivos do backend.
+
 ## Desempenho do backend
 
 Comando: `python3 tests/benchmark.py`.
 
-Base sintética de 12 meses: 10 motoristas, 3.650 roteiros, 36.500 pontos. Cinco consultas com agregação e serialização JSON: 0,1181; 0,1218; 0,1198; 0,1209; 0,1207 segundos. Pior tempo: **0,1218 s** nesta máquina. Payload completo aproximado: **11 MB**.
+Base sintética de 12 meses: 10 motoristas, 3.650 roteiros, 36.500 pontos. Cinco consultas com agregação e serialização JSON: 0,1325; 0,1228; 0,1213; 0,1237; 0,1217 segundos. Pior tempo: **0,1325 s** nesta máquina. Payload completo aproximado: **11 MB**.
 
 Esta medição atende ao limite de 3 segundos para a parte de consulta local na carga ensaiada. Não mede transporte HTTP nem renderização de milhares de linhas. Portanto não comprova, isoladamente, RNF03 ponta a ponta em implantação real; bases maiores devem receber paginação, agregação no servidor e ensaios adicionais de interface/rede.
 
-## Verificação no navegador
+## Verificação após a refatoração — 20/09/2026
+
+Chrome automatizado, servidor na porta 8001 e banco temporário separado da demonstração: login de administrador, dashboard com quatro indicadores e dois gráficos via CDN, navegação pelas seis telas, inclusão e remoção de campos de pontos com renumeração correta, filtro de pendências, logout e página de documentação com cinco documentos. Nenhum erro JavaScript observado. O servidor temporário foi encerrado após a verificação.
+
+## Verificação no navegador em 16/09/2026, anterior à refatoração
 
 - Login real com administrador e dashboard exibindo dados da base de demonstração.
 - Gráficos de barras e rosca carregados via Chart.js/CDN.

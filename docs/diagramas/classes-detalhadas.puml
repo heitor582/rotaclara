@@ -1,53 +1,88 @@
 @startuml
 skinparam classAttributeIconSize 0
-title RotaClara — Estrutura lógica da implementação Python
-class BaseHTTPRequestHandler <<biblioteca padrão>>
-class Handler {
- +do_GET()
- +do_POST()
- +do_PUT()
+title RotaClara — Classes da implementação
+class BaseHTTPRequestHandler
+class RequestHandler {
  +handle_request(method)
- +get_api(db, user, path, query)
- +write_api(db, user, path, method, data)
- +user(db): dict
- +require(user, roles)
- +route(db, user, rid): dict
- +audit(db, user, pid, action, before, after, reason)
- +send(data, status, kind, headers)
- +body(): dict
+ +send_response_data(response)
 }
-class "business.py" as Business <<módulo de funções>> {
- +numero(valor, nome, minimo, maximo): float
- +horario(valor): datetime
- +calcularTempoParadoPonto(ponto, ordem): float
- +calcularTempoTotalRoteiro(pontos): float
- +calcularCustoRoteiro(distancia, preco, rendimento): float
- +calcularPorcentagemJornada(minutos, jornada): float
+class Application {
+ +dispatch(method, path, query, data, cookie_header, client)
 }
-class "server.py / funções" as Service <<módulo>> {
- +init_db()
- +seed_demo()
- +connect(): Connection
- +scope(user, alias): tuple
- +recalc(db, rid)
- +report_data(db, user, query): dict
- +password_hash(password, salt): str
- +now(): str
+class Endpoint {
+ +match(method, path)
+ +handler
+ +requires_authentication
 }
-class "sqlite3.Connection" as Conn <<biblioteca padrão>> {
- +execute(sql, parametros)
- +executescript(sql)
- +commit()
- +rollback()
+class Request
+class Response
+class RouteController {
+ +create(request)
+ +start(request, route_id)
+ +record_visit(request, point_id)
+ +correct_point(request, point_id)
 }
-BaseHTTPRequestHandler <|-- Handler
-Handler ..> Business : valida e calcula
-Handler ..> Service : sessão, escopo e relatório
-Service ..> Business : recalcula totais
-Service ..> Conn : cria conexão
-Handler ..> Conn : persiste em transação
-note bottom of Service
-  Entidades de domínio são linhas SQLite/dicionários,
-  não classes ORM. O modelo conceitual é separado.
+class AuthenticationController
+class TeamController
+class ParameterController
+class ReportController
+class AuditController
+class Database {
+ +transaction(write)
+}
+class RouteService {
+ +create(user, data)
+ +start(user, route_id)
+ +record_visit(user, point_id, action)
+ +correct_point(user, point_id, data)
+ +recalculate(route_id)
+}
+class TeamService
+class ParameterService
+class ReportService
+class AuthenticationService
+class RouteRepository
+class TeamRepository
+class ParameterRepository
+class ReportRepository
+class AccountRepository
+class AuditRepository
+class SystemClock
+class "domain.py" as Domain <<funções puras>>
+BaseHTTPRequestHandler <|-- RequestHandler
+RequestHandler --> Application
+Application --> Database : delimita transação
+RouteController --> RouteService
+TeamController --> TeamService
+ParameterController --> ParameterService
+ReportController --> ReportService
+Application ..> AuthenticationService : autentica sessão
+Application ..> Endpoint : resolve e executa
+Application ..> Request
+Application ..> Response
+Endpoint ..> RouteController : handler
+AuthenticationController --> AuthenticationService
+AuditController --> AuditRepository
+RouteService --> RouteRepository
+RouteService --> TeamRepository
+RouteService --> ParameterRepository
+RouteService --> AuditRepository
+RouteService --> SystemClock
+RouteService ..> Domain
+TeamService --> TeamRepository
+TeamService --> AccountRepository
+ParameterService --> ParameterRepository
+ParameterService --> AuditRepository
+ReportService --> ReportRepository
+AuthenticationService --> AccountRepository
+note bottom of Database
+  Uma conexão por operação.
+  Commit ou rollback e fechamento.
+  Repositórios compartilham a conexão.
+end note
+note bottom of Application
+  dependencies.py monta serviços e controladores.
+  endpoints.py declara métodos e caminhos.
+  Uma classe de implementação por arquivo.
 end note
 @enduml

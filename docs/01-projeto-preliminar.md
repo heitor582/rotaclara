@@ -164,7 +164,7 @@ Os diagramas de robustez usam actor, boundary, control e entity do PlantUML. Ato
 | --- | --- |
 | RF01, RF02 | Equipe; API motoristas/gerentes; UC05 |
 | RF03, RF04 | Novo roteiro; coordenadas e ordem; UC01 |
-| RF05, RF06 | Coleta; business.py; UC02 |
+| RF05, RF06 | Coleta; rotaclara/domain.py; UC02 |
 | RF07, RF12 | Histórico, busca, CSV e impressão PDF; UC06 |
 | RF08 | Dia/mês/período; Chart.js e fallback nativo; UC03 |
 | RF09–RF11 | Parâmetros, snapshot e custo; UC04 |

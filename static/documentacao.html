@@ -55,7 +55,7 @@
 <ul><li>casos-de-uso.puml: visão geral dos atores e permissões.</li><li>classes-conceitual.puml: entidades de domínio, multiplicidades e atributos.</li><li>robustez-uc01.puml a robustez-uc04.puml: fronteiras, controles e entidades dos quatro fluxos principais.</li><li>modelo-relacional.puml: complemento técnico com usuário, sessão e auditoria.</li><li>componentes.puml e implantacao.puml: arquitetura física do MVP.</li><li>classes-detalhadas.puml e objetos.puml: estrutura lógica efetiva e exemplo do roteiro A.</li></ul>
 <p>Os diagramas de robustez usam actor, boundary, control e entity do PlantUML. Atores interagem com fronteiras; fronteiras com controles; controles com entidades e outros controles. Não há ligação direta de ator a entidade. No modelo conceitual, atributos com / são derivados.</p>
 <h3>6. Rastreabilidade</h3>
-<div class="table-wrap"><table><thead><tr><th>Requisito</th><th>Implementação / evidência</th></tr></thead><tbody><tr><td>RF01, RF02</td><td>Equipe; API motoristas/gerentes; UC05</td></tr><tr><td>RF03, RF04</td><td>Novo roteiro; coordenadas e ordem; UC01</td></tr><tr><td>RF05, RF06</td><td>Coleta; business.py; UC02</td></tr><tr><td>RF07, RF12</td><td>Histórico, busca, CSV e impressão PDF; UC06</td></tr><tr><td>RF08</td><td>Dia/mês/período; Chart.js e fallback nativo; UC03</td></tr><tr><td>RF09–RF11</td><td>Parâmetros, snapshot e custo; UC04</td></tr><tr><td>RN01–RN03</td><td>Funções de tempo e testes com A=75, B=41, C=45 min</td></tr><tr><td>RN04</td><td>Jornada padrão 8 h; percentual ponderado; teste 75/480=15,625%</td></tr><tr><td>RN05, RN06</td><td>FK motorista, data, UNIQUE motorista/data e roteiro/ordem</td></tr><tr><td>RN07</td><td>distância × combustível / rendimento; teste 100×6/10=60</td></tr><tr><td>RNF01</td><td>SQLite, transações e schema.sql com FKs e índices</td></tr><tr><td>RNF02</td><td>CSS responsivo, botões de 44 px, labels e navegação por teclado</td></tr><tr><td>RNF03</td><td>Índice de data, consultas delimitadas e benchmark sintético de 12 meses</td></tr><tr><td>RNF04</td><td>Sessão, autorização no servidor e teste de isolamento</td></tr><tr><td>RNF05</td><td>Tabela de auditoria, antes/depois/motivo e triggers imutáveis</td></tr><tr><td>RNF06</td><td>Minimização, restrição de acesso e plano de tratamento em 02-operacao-e-privacidade.md; conformidade integral depende da implantação</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Requisito</th><th>Implementação / evidência</th></tr></thead><tbody><tr><td>RF01, RF02</td><td>Equipe; API motoristas/gerentes; UC05</td></tr><tr><td>RF03, RF04</td><td>Novo roteiro; coordenadas e ordem; UC01</td></tr><tr><td>RF05, RF06</td><td>Coleta; rotaclara/domain.py; UC02</td></tr><tr><td>RF07, RF12</td><td>Histórico, busca, CSV e impressão PDF; UC06</td></tr><tr><td>RF08</td><td>Dia/mês/período; Chart.js e fallback nativo; UC03</td></tr><tr><td>RF09–RF11</td><td>Parâmetros, snapshot e custo; UC04</td></tr><tr><td>RN01–RN03</td><td>Funções de tempo e testes com A=75, B=41, C=45 min</td></tr><tr><td>RN04</td><td>Jornada padrão 8 h; percentual ponderado; teste 75/480=15,625%</td></tr><tr><td>RN05, RN06</td><td>FK motorista, data, UNIQUE motorista/data e roteiro/ordem</td></tr><tr><td>RN07</td><td>distância × combustível / rendimento; teste 100×6/10=60</td></tr><tr><td>RNF01</td><td>SQLite, transações e schema.sql com FKs e índices</td></tr><tr><td>RNF02</td><td>CSS responsivo, botões de 44 px, labels e navegação por teclado</td></tr><tr><td>RNF03</td><td>Índice de data, consultas delimitadas e benchmark sintético de 12 meses</td></tr><tr><td>RNF04</td><td>Sessão, autorização no servidor e teste de isolamento</td></tr><tr><td>RNF05</td><td>Tabela de auditoria, antes/depois/motivo e triggers imutáveis</td></tr><tr><td>RNF06</td><td>Minimização, restrição de acesso e plano de tratamento em 02-operacao-e-privacidade.md; conformidade integral depende da implantação</td></tr></tbody></table></div>
 <h3>7. Plano de validação e limites</h3>
 <p>Testes automatizados verificam fórmulas, validação, persistência, autenticação, permissões, coleta, correção, auditoria e exportação. O benchmark mede consulta e agregação de 12 meses em base sintética; não é garantia de desempenho de qualquer máquina ou rede. A verificação manual cobre desktop/mobile, filtros, formulários, estados vazios e impressão.</p>
 <p>O servidor padrão escuta apenas 127.0.0.1. O MVP é adequado à execução e demonstração local, não é um serviço pronto para produção. Em produção são necessários HTTPS, servidor apropriado, gerenciamento de contas/senhas, política de retenção, rotinas de backup e processos organizacionais de proteção de dados.</p></div></details><article class="diagram-card" id="casos-de-uso"><div class="diagram-heading"><div><h3>Casos de uso</h3><p>Atores, funcionalidades e permissões.</p></div><a class="download" href="/documentacao/arquivos/casos-de-uso.puml" download>Baixar .puml ↓</a></div>
@@ -297,36 +297,51 @@ note bottom of C
 end note
 @enduml
 </code></pre></details></article></section><section class="docs-section" id="detalhado"><div class="section-heading"><span>02</span><div><h2>Projeto detalhado</h2><p>Tecnologias e modelos de arquitetura física e lógica citados no quadro.</p></div></div><div class="note"><b>Interface e interação — 2ª parte da entrega:</b> o aplicativo reúne coleta, dashboard, histórico, equipe, parâmetros e auditoria. <a href="/">Abrir o MVP →</a><br>Os diagramas abaixo complementam o projeto conforme os itens de arquitetura escritos no quadro.</div><article class="diagram-card" id="componentes"><div class="diagram-heading"><div><h3>Diagrama de componentes</h3><p>Interface, API, regras de negócio e persistência.</p></div><a class="download" href="/documentacao/arquivos/componentes.puml" download>Baixar .puml ↓</a></div>
-    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/HPB1Rjim38RlUWgYzpg7zJ3iCBHnK3X5rgLrkyko0oCphXfPSaNPGpOCs4Fi1OeU1WpOSK_WD-cJZ7Aw1V118Z-JFt_nb2E6s3LMyTQu5WCse7tJUaSkbd5d2GBfYAwsfAA9Sh_s4NCh93n__m5duQ4paM8dzytmcur6c1nA4AiMzHPhWgFScXI1pxG-WgyAFixb5ZQe2OgRTuj9NfQV01bkvvBBlOl1MwnyW8eWaaLUEMpRx9v7wg9Cr9sebmYSP2VPwvNBPvTmppEofWyZbHVgsq51IQ4tgU9o5--yswieq5MMWcYuMQuS2q8XQtVZxuNahwaEScnbGb6mxjWuOlv7J8LOKc33SVZbj4dJyuCLIrwD-V9g8GegZBX6JXAk5f9RkI0kwkHYLeaR0iwcwdOEnyTlPJ9u0zIBLvwLN58iBoGMo5KKp1U4EWoF6wCF-PHE0qZtY_BzvSffxxU6adKiQeSdhueHd0hOepKL3Z-7FyH0e8T7gpihnVQ8I1H8UyUTZMdoj1KKK-CgMI2l4T3nIm6LyFJRB9MsPCPLc02n3YQYSbwUVErZz0tuJN8Kphhenp6q5FpVI9GqNKnLdtmcL5v-W9g2R02qP3tmo-Ebt79s3hruRPesxCS39n_sLEE8Y5EGEgjJEQNr_Wi0" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Diagrama de componentes"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/HPB1Rjim38RlUWgYzpg7zJ3iCBHnK3X5rgLrkyko0oCphXfPSaNPGpOCs4Fi1OeU1WpOSK_WD-cJZ7Aw1V118Z-JFt_nb2E6s3LMyTQu5WCse7tJUaSkbd5d2GBfYAwsfAA9Sh_s4NCh93n__m5duQ4paM8dzytmcur6c1nA4AiMzHPhWgFScXI1pxG-WgyAFixb5ZQe2OgRTuj9NfQV01bkvvBBlOl1MwnyW8eWaaLUEMpRx9v7wg9Cr9sebmYSP2VPwvNBPvTmppEofWyZbHVgsq51IQ4tgU9o5--yswieq5MMWcYuMQuS2q8XQtVZxuNahwaEScnbGb6mxjWuOlv7J8LOKc33SVZbj4dJyuCLIrwD-V9g8GegZBX6JXAk5f9RkI0kwkHYLeaR0iwcwdOEnyTlPJ9u0zIBLvwLN58iBoGMo5KKp1U4EWoF6wCF-PHE0qZtY_BzvSffxxU6adKiQeSdhueHd0hOepKL3Z-7FyH0e8T7gpihnVQ8I1H8UyUTZMdoj1KKK-CgMI2l4T3nIm6LyFJRB9MsPCPLc02n3YQYSbwUVErZz0tuJN8Kphhenp6q5FpVI9GqNKnLdtmcL5v-W9g2R02qP3tmo-Ebt79s3hruRPesxCS39n_sLEE8Y5EGEgjJEQNr_Wi0" alt="Diagrama PlantUML: Diagrama de componentes"></a>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/PLJ1RXCn4BtxAqQzjxbpGAK94a8eb6xK2-8myGw9gTUsx4dQW93u2Fw00nA_aJ_XInZRkzjDEAniptipVZDFw-l467dNMPKUZ0iOiGFjk-0TEMxuO0aYQKQtiQJOi9plFEFS2XF-_lW9yu5C2Le4qmLBdHpn-Fluowk0-W4t11TpQp897cbz0TyKVCGGhhwaJu19QZYEtbgA4jyRUao2m0m--zWXCyKqCEypM9BDc5mAIqnlfPC-CrBmaOtRZAm22gjiCcbl4EQBPKKNI_NzMMj3SMzQ7-7sm5llIfzHkjQvwwf-onokmg5alrcjRcj3rcXauzs0l0eX2nlRIxEpVhCYSctmnedqFklr412mfI0uEMren1UJc51ILgifpQJlH7eN3H_gFKsFv3g-GpFgMfIJXFESac4VfLJDkPj4SXuohZ7HaBcAw1Bgt6JH_fJdd0tgyNbpBvCSig3vyCw8wVdA6_NSDbnUlkozF0lsFjMbHiIRSrArl2ubaYs05tMPmTlc_LALVSQo2VAL_JXQ8KTAtkwfE3iIfhCLJYSN8rGJZdyaYacTK8gSYPr3dKbCoj2J-2A51glL5CxqqQaXVpfdAR1pfiMMH0bmbD7QhV-lHXxzKAVsKbq-YPtOEptKZ1kvIpo3yX0GH_CLMwzEn8myUIOwm_bd4n5h-NVKjVINdv9_" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Diagrama de componentes"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/PLJ1RXCn4BtxAqQzjxbpGAK94a8eb6xK2-8myGw9gTUsx4dQW93u2Fw00nA_aJ_XInZRkzjDEAniptipVZDFw-l467dNMPKUZ0iOiGFjk-0TEMxuO0aYQKQtiQJOi9plFEFS2XF-_lW9yu5C2Le4qmLBdHpn-Fluowk0-W4t11TpQp897cbz0TyKVCGGhhwaJu19QZYEtbgA4jyRUao2m0m--zWXCyKqCEypM9BDc5mAIqnlfPC-CrBmaOtRZAm22gjiCcbl4EQBPKKNI_NzMMj3SMzQ7-7sm5llIfzHkjQvwwf-onokmg5alrcjRcj3rcXauzs0l0eX2nlRIxEpVhCYSctmnedqFklr412mfI0uEMren1UJc51ILgifpQJlH7eN3H_gFKsFv3g-GpFgMfIJXFESac4VfLJDkPj4SXuohZ7HaBcAw1Bgt6JH_fJdd0tgyNbpBvCSig3vyCw8wVdA6_NSDbnUlkozF0lsFjMbHiIRSrArl2ubaYs05tMPmTlc_LALVSQo2VAL_JXQ8KTAtkwfE3iIfhCLJYSN8rGJZdyaYacTK8gSYPr3dKbCoj2J-2A51glL5CxqqQaXVpfdAR1pfiMMH0bmbD7QhV-lHXxzKAVsKbq-YPtOEptKZ1kvIpo3yX0GH_CLMwzEn8myUIOwm_bd4n5h-NVKjVINdv9_" alt="Diagrama PlantUML: Diagrama de componentes"></a>
     <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
     <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
 skinparam componentStyle rectangle
-title RotaClara — Arquitetura física / componentes
+title RotaClara — Componentes da implementação
 package &quot;Cliente web&quot; {
- [Interface HTML/CSS] as UI
- [Controlador de telas\napp.js] as JS
- [Chart.js 4.4.8\nCDN jsDelivr] as CH
+ [app.js] as Controller
+ [views.js / formatters.js] as Views
+ [api.js] as Client
+ [charts.js / reporting.js] as Charts
+ [Chart.js via CDN] as CDN
 }
-package &quot;Servidor Python&quot; {
- [Handler HTTP\nserver.py] as H
- [Regras puras\nbusiness.py] as B
- [Persistência / sqlite3] as SQL
+package &quot;Servidor Python — rotaclara&quot; {
+ [http.py] as HTTP
+ [application.py] as App
+ [controllers/] as Controllers
+ [endpoints.py] as Endpoints
+ [dependencies.py] as Dependencies
+ [services/ / security/] as Services
+ [domain.py] as Domain
+ [repositories/] as Repositories
+ [database.py] as Transactions
+ [exporters.py] as CSV
 }
-database &quot;SQLite\nrotaclara.db&quot; as DB
-UI --&gt; JS : eventos
-JS --&gt; CH : renderiza gráficos
-JS --&gt; H : HTTP / JSON\ncookie de sessão
-H --&gt; B : validações e cálculos
-H --&gt; SQL : consultas parametrizadas\ne transações
-SQL --&gt; DB : leitura / escrita
-note bottom of H
-  Autoriza cada consulta e mutação.
-  CSV gerado pelo servidor.
-  PDF via impressão no navegador.
-end note
+database SQLite as DB
+Controller --&gt; Views
+Controller --&gt; Charts
+Charts --&gt; CDN
+Controller --&gt; Client
+Client --&gt; HTTP : HTTP / JSON
+HTTP --&gt; App
+App --&gt; Endpoints : resolve rota
+App --&gt; Dependencies : monta dependências
+Dependencies --&gt; Controllers
+App --&gt; Controllers : executa endpoint
+Controllers --&gt; Services
+App --&gt; Transactions : unidade de trabalho
+Controllers --&gt; CSV
+Services --&gt; Domain
+Services --&gt; Repositories
+Repositories --&gt; DB : SQL parametrizado
+Transactions --&gt; DB : commit / rollback
 @enduml
 </code></pre></details></article><article class="diagram-card" id="implantacao"><div class="diagram-heading"><div><h3>Diagrama de implantação</h3><p>Navegador, servidor Python local, SQLite e CDN.</p></div><a class="download" href="/documentacao/arquivos/implantacao.puml" download>Baixar .puml ↓</a></div>
-    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/NL9TRjD047xtAKPvXReELABA0shY81MKbe0Z-fANYNUSRhNUDRjZqu0gSGXkm0C7u0Yv2ITXrauBhIojTtQ--Vc-cRF0wBcjJSAQ3S57nvWRz0X_ll-0jtLZq3BkV-r_Eg2AM7S8oi75foKOLw99h5C4ezpLJSked0Sn5TNE1lP3t0Y-9J30Bh6ZRKJrRo2LTOKbm-XyTR60OyYBGivts65HUjtm2330rPjP0dVtAPOxldOMNgRZxDdQZb-yIZFvnfFJBCkUPWtaE_9fi-lp58zycpPeIo7SUuSQ2Xat6AJEr7zkTUS6bj1unxJLogrjX1oBYMMKALMRFdm-I-wIqhXMYHZpIxW9SpAwysjxlbejYnuZxucGWQEZrr301ABda5z85-__UME62UJNqcvw4-0aFKbFaw9tpGx_-KmGnOU5Pf8PCC76CRiQN3K81WlSkPR1KsXa694AGOrMLnJOmV9gcWeeTuOOWMxrbg1qbcxZeCkO1w9wmjX7t4g297p_koCHGwPCTMiEQo5JwJHzaLTE4x8AOZjFUvh7bXwlayI9hAeTB1iFJsZqLrGOQqvB6KyF4nxU1L1Qg0GjEoZ6GykLthQ7JPCWGNjIzFoXUq0fqdWjMoS2zCFuhyipkSNb_mi0" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Diagrama de implantação"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/NL9TRjD047xtAKPvXReELABA0shY81MKbe0Z-fANYNUSRhNUDRjZqu0gSGXkm0C7u0Yv2ITXrauBhIojTtQ--Vc-cRF0wBcjJSAQ3S57nvWRz0X_ll-0jtLZq3BkV-r_Eg2AM7S8oi75foKOLw99h5C4ezpLJSked0Sn5TNE1lP3t0Y-9J30Bh6ZRKJrRo2LTOKbm-XyTR60OyYBGivts65HUjtm2330rPjP0dVtAPOxldOMNgRZxDdQZb-yIZFvnfFJBCkUPWtaE_9fi-lp58zycpPeIo7SUuSQ2Xat6AJEr7zkTUS6bj1unxJLogrjX1oBYMMKALMRFdm-I-wIqhXMYHZpIxW9SpAwysjxlbejYnuZxucGWQEZrr301ABda5z85-__UME62UJNqcvw4-0aFKbFaw9tpGx_-KmGnOU5Pf8PCC76CRiQN3K81WlSkPR1KsXa694AGOrMLnJOmV9gcWeeTuOOWMxrbg1qbcxZeCkO1w9wmjX7t4g297p_koCHGwPCTMiEQo5JwJHzaLTE4x8AOZjFUvh7bXwlayI9hAeTB1iFJsZqLrGOQqvB6KyF4nxU1L1Qg0GjEoZ6GykLthQ7JPCWGNjIzFoXUq0fqdWjMoS2zCFuhyipkSNb_mi0" alt="Diagrama PlantUML: Diagrama de implantação"></a>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/NLDBRjj03Dth58ItJMIx3T30YoB-54WB9tKhezbuGsjePm9fgCvGQj8WG0_H6tIH0-G8labFKexa9aqWGD0C7ydt7gcJ8EYbBej4h1G4NrXmMg17-FFp5tmegmATuEv-zvk1DYIsGJ0CPryNK72EHUBO4FIcN5Qre64FUZHKiWlYkxmUt2RGmSwneMr4jNUWdUq6Su7UwV9i3dsOPfc-FsA3MUvj9Jt001Vl9mdS_Iknk95BTl0c7GvUhTpmzTjqeCzmT3mO35vM3UGRycbrqzR9diMy2isZqFxAdIwNYmE8QBkxvm04dYeELdOFtd9eipiE1WNN69J7s7-hRSET2r1fETfQmoiN8Vt7wgbPj-cpINANv0NNHisQdSDLc55X6zyrprgCtYSg5WuFtq468uYHVNqr9Vlq58qLHZ2zL3dfLO2Zz2WzJh8sD4awo6oYYEppt0hfZ8HWpI9S0cywGs6EDroBAWsL3YjA8IZHsGq5OLXSZ5C5JRaWGQ1hkoN8sT5rN8Gyrkdyqbb6t5AJD7ttq92QeLj0PLtirqQdrbZwhhUI9kGCH3elESqYfUVhfdbggwcxauilJrZO7sWmzXpd548BKnrUnsPiQAUcMi8JvOtTrljDr2GJPsleu94ze3QflDMjL0FQOVp7yaI_ui_n5m00" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Diagrama de implantação"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/NLDBRjj03Dth58ItJMIx3T30YoB-54WB9tKhezbuGsjePm9fgCvGQj8WG0_H6tIH0-G8labFKexa9aqWGD0C7ydt7gcJ8EYbBej4h1G4NrXmMg17-FFp5tmegmATuEv-zvk1DYIsGJ0CPryNK72EHUBO4FIcN5Qre64FUZHKiWlYkxmUt2RGmSwneMr4jNUWdUq6Su7UwV9i3dsOPfc-FsA3MUvj9Jt001Vl9mdS_Iknk95BTl0c7GvUhTpmzTjqeCzmT3mO35vM3UGRycbrqzR9diMy2isZqFxAdIwNYmE8QBkxvm04dYeELdOFtd9eipiE1WNN69J7s7-hRSET2r1fETfQmoiN8Vt7wgbPj-cpINANv0NNHisQdSDLc55X6zyrprgCtYSg5WuFtq468uYHVNqr9Vlq58qLHZ2zL3dfLO2Zz2WzJh8sD4awo6oYYEppt0hfZ8HWpI9S0cywGs6EDroBAWsL3YjA8IZHsGq5OLXSZ5C5JRaWGQ1hkoN8sT5rN8Gyrkdyqbb6t5AJD7ttq92QeLj0PLtirqQdrbZwhhUI9kGCH3elESqYfUVhfdbggwcxauilJrZO7sWmzXpd548BKnrUnsPiQAUcMi8JvOtTrljDr2GJPsleu94ze3QflDMjL0FQOVp7yaI_ui_n5m00" alt="Diagrama PlantUML: Diagrama de implantação"></a>
     <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
     <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
 title RotaClara — Implantação efetiva do MVP local
@@ -336,7 +351,7 @@ node &quot;Computador de demonstração&quot; {
  }
  node &quot;Python 3.10+\n127.0.0.1:8000&quot; {
   artifact &quot;server.py&quot; as S
-  artifact &quot;business.py&quot; as B
+  artifact &quot;rotaclara/\nHTTP, serviços e repositórios&quot; as B
  }
  database &quot;Arquivo local protegido\ndata/rotaclara.db&quot; as DB
 }
@@ -344,7 +359,7 @@ cloud &quot;CDN jsDelivr\nHTTPS&quot; as CDN
 WEB --&gt; S : HTTP local / JSON
 WEB --&gt; CDN : Chart.js 4.4.8
 S --&gt; B
-S --&gt; DB : SQLite
+B --&gt; DB : SQLite
 note bottom of WEB
   Layout responsivo e manifesto PWA.
   Coleta exige conexão com o servidor.
@@ -357,59 +372,94 @@ note bottom of DB
 end note
 @enduml
 </code></pre></details></article><article class="diagram-card" id="classes-detalhadas"><div class="diagram-heading"><div><h3>Classes detalhadas</h3><p>Estrutura efetiva dos módulos Python e do servidor HTTP.</p></div><a class="download" href="/documentacao/arquivos/classes-detalhadas.puml" download>Baixar .puml ↓</a></div>
-    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/TLLBRYH54DtNAKApgX4rFKZih55hmB8O4CYDtQnRsPNHxcGoCseoeyOsCD8SWWiW5eW5AuiJz4qu2I_huxQHPzELdnU_5o-oNsSrIVlWg_pMnSua4wZr9kSlLPFRzihVj18ltSzCdrVgr3DTY9fJ3oJz-_4tEikQUksnyuUxAzSQiePSw3m7ZceEVnx-45hTwbvYDJYchqpcD-lrweBVzPprZOdMSw9NhxPkwvqemqTdR8BXSZdPpA1VAlhCokRhitNzV5okpY-Fwn_7vNv0Rz8Oe0wCwBPSNB5kJETgkssepvmQ1D9zGy2bsmAuJaxvISZef45rQWgot07q_8IiQnK79PfBN8z6IJpdWai23XzuIyuURKnldJuCvH31jEeaDhJbdIJ6VgU38PiiiRZC76rTycW8tTC-DuJUmNBFnd8Qmcx5tjPpe0yJYy-sVNQHSrvqjy_8e1NJ7kI7mvtjlP1bslKHRVk7yt8v41xxm4dgzyOByeWIa5HmqGN1rzpWYq0xBwQKj9TaaflG9G6Zh2umhbhZsnx2MNFeP0K1MLb9LAcxyjkG9ClXWQj7-3LKvo4zTcaoo4z0J_kiCgEi0psnTU2fIznAuJ1QLtGfJzYk9BL5ibSSlfKKZJKrgkmHgA6VneDxgtj6qRRtdC0dlJpoDd1xYHlNyf7QYKqGfnkxhSTEijsWQ1bs6BJ8hPQsdOvBwA2WMkbcNHdlJ2bSUqpOeBgI_Y2XegpXf9E42D370sMD2hyNNeVahy7tPc_olfvtq9Fn2XHcklHThkjfSwptdSU4VB4u9ZWKMxQVcE2XQBxXjim1pCj0uPLXJJ8eTRhARNAT5i18HGYOZ760lD-QzYqs7wfFlHs_ldWnln7LVBXOB8y2Fo48qk5fOfhw_GWtDmlL0esy6-92km2Vs1izt47KrGpxd-kn2V192fMw_0WtK7D2ACyGEimtyFuezWJeCBaGB1C7qcHY7j_EAe9Fsegg19BTd6b5T1OL1LdEPMQjXCFVqGcLvCcxk2yI_E4xDEibUeu-7Nv71Rc1OIoGeP-mFR_uVa7d5CGofXy9jkoqDvuEVu6BRfZIHOMveP98zHghyc_n7m00" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Classes detalhadas"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/TLLBRYH54DtNAKApgX4rFKZih55hmB8O4CYDtQnRsPNHxcGoCseoeyOsCD8SWWiW5eW5AuiJz4qu2I_huxQHPzELdnU_5o-oNsSrIVlWg_pMnSua4wZr9kSlLPFRzihVj18ltSzCdrVgr3DTY9fJ3oJz-_4tEikQUksnyuUxAzSQiePSw3m7ZceEVnx-45hTwbvYDJYchqpcD-lrweBVzPprZOdMSw9NhxPkwvqemqTdR8BXSZdPpA1VAlhCokRhitNzV5okpY-Fwn_7vNv0Rz8Oe0wCwBPSNB5kJETgkssepvmQ1D9zGy2bsmAuJaxvISZef45rQWgot07q_8IiQnK79PfBN8z6IJpdWai23XzuIyuURKnldJuCvH31jEeaDhJbdIJ6VgU38PiiiRZC76rTycW8tTC-DuJUmNBFnd8Qmcx5tjPpe0yJYy-sVNQHSrvqjy_8e1NJ7kI7mvtjlP1bslKHRVk7yt8v41xxm4dgzyOByeWIa5HmqGN1rzpWYq0xBwQKj9TaaflG9G6Zh2umhbhZsnx2MNFeP0K1MLb9LAcxyjkG9ClXWQj7-3LKvo4zTcaoo4z0J_kiCgEi0psnTU2fIznAuJ1QLtGfJzYk9BL5ibSSlfKKZJKrgkmHgA6VneDxgtj6qRRtdC0dlJpoDd1xYHlNyf7QYKqGfnkxhSTEijsWQ1bs6BJ8hPQsdOvBwA2WMkbcNHdlJ2bSUqpOeBgI_Y2XegpXf9E42D370sMD2hyNNeVahy7tPc_olfvtq9Fn2XHcklHThkjfSwptdSU4VB4u9ZWKMxQVcE2XQBxXjim1pCj0uPLXJJ8eTRhARNAT5i18HGYOZ760lD-QzYqs7wfFlHs_ldWnln7LVBXOB8y2Fo48qk5fOfhw_GWtDmlL0esy6-92km2Vs1izt47KrGpxd-kn2V192fMw_0WtK7D2ACyGEimtyFuezWJeCBaGB1C7qcHY7j_EAe9Fsegg19BTd6b5T1OL1LdEPMQjXCFVqGcLvCcxk2yI_E4xDEibUeu-7Nv71Rc1OIoGeP-mFR_uVa7d5CGofXy9jkoqDvuEVu6BRfZIHOMveP98zHghyc_n7m00" alt="Diagrama PlantUML: Classes detalhadas"></a>
+    <a class="diagram-image" href="https://www.plantuml.com/plantuml/svg/XLPBRjim4Dth58Ei7DGskWu28wvR8Dq5IResQ6e24HP9bQJSk6s07g8tw2BekkW9V9EUf4DAbYbHQU6DEFCutpTZNbd7ZAjbcTcjK1KpJ08lcRLBvupOr0xVSwtkn6U4rvaJhaIurOwjIaB2ds_VOUN1Q25d86HLeaJbsE7vy4DdmGwyOHQlx-zlRl5ZZTPTCvMNQ5fbNmXVCdXLXE-rQJGJYQxG-JafBAgSnBRIok8wPuvDZgVpxAarkAogKd3cX5R1MYvinHmlMZjJe5Cn1R9jzbFmHgR0jTuAN1V8SZHqB0NbS3BvJkML5ie5Up8nTjx5REZBXoqeh3MhNK5csbWwOst2tQc9_tZKLE-LLixeybWERf0vdBJb27Nm7JiAfc3yfRK89JB8jSdNEs55X0ZHjmZI4yYjWsmCqXMo5_yfg5PzZqmcmXjF7tHe4iqjLjguHBoiSv5Atr9NDiIQaBypJ5d6VH2JJqQugDUXN7TeTe9ZNAlQ-ZRwtfxArSXUh5MZFbPX2et3j613tD49GLZ9wpAqgdFo51MhZNDOgRwuALDVrc_40EzT-KkKWpRxo5qYx3mcciPf8bvohcir8lSzIwHtU-jGhahDjwtaBDUI2JMlzcV0gAdX19UN3xMYzV2RLaPL6sONYsnyGy3brzbii22o0MGsMyGJdyNJxtKTaouWnr98uHWqX6esr73W_9sOLLcVva4VDtE4y06Jj7V8_yPJhzjnxFFvOhplb0WjbaOCj7Qjps9uirjO5q2RI9Sx1Fez8gyTIy37XPJAszNKMGlIGS4kuBZwNjeNJOz6EJoO_XRPPrTlnhls_0imO7-Y7nk41FJVC6A-zvI-IWtNiuWfOv4DrUd03MdqOloZm2I7c6uH0IF8EEV6WrFQ8MoqSrg2VkX6BGFu81dzfofy97BIhZIWApJDnCr9lTAI1X5q3Rxl6yQtHCy7v0NpRuS0QTqSVXcXBTcIz31neYG4d4pFCteGW0zZ64ky4e0clo8WAYxGqZO2IOppmqF97Px9F7gBdeCirpGltZ-sd0_u77buxSZ3JwVpvWAJGXKwO4EsuH54oE4RAAJF3Bq9Td6yL_Jbtrn_0G00" target="_blank" rel="noopener noreferrer" aria-label="Ampliar diagrama: Classes detalhadas"><img loading="lazy" src="https://www.plantuml.com/plantuml/svg/XLPBRjim4Dth58Ei7DGskWu28wvR8Dq5IResQ6e24HP9bQJSk6s07g8tw2BekkW9V9EUf4DAbYbHQU6DEFCutpTZNbd7ZAjbcTcjK1KpJ08lcRLBvupOr0xVSwtkn6U4rvaJhaIurOwjIaB2ds_VOUN1Q25d86HLeaJbsE7vy4DdmGwyOHQlx-zlRl5ZZTPTCvMNQ5fbNmXVCdXLXE-rQJGJYQxG-JafBAgSnBRIok8wPuvDZgVpxAarkAogKd3cX5R1MYvinHmlMZjJe5Cn1R9jzbFmHgR0jTuAN1V8SZHqB0NbS3BvJkML5ie5Up8nTjx5REZBXoqeh3MhNK5csbWwOst2tQc9_tZKLE-LLixeybWERf0vdBJb27Nm7JiAfc3yfRK89JB8jSdNEs55X0ZHjmZI4yYjWsmCqXMo5_yfg5PzZqmcmXjF7tHe4iqjLjguHBoiSv5Atr9NDiIQaBypJ5d6VH2JJqQugDUXN7TeTe9ZNAlQ-ZRwtfxArSXUh5MZFbPX2et3j613tD49GLZ9wpAqgdFo51MhZNDOgRwuALDVrc_40EzT-KkKWpRxo5qYx3mcciPf8bvohcir8lSzIwHtU-jGhahDjwtaBDUI2JMlzcV0gAdX19UN3xMYzV2RLaPL6sONYsnyGy3brzbii22o0MGsMyGJdyNJxtKTaouWnr98uHWqX6esr73W_9sOLLcVva4VDtE4y06Jj7V8_yPJhzjnxFFvOhplb0WjbaOCj7Qjps9uirjO5q2RI9Sx1Fez8gyTIy37XPJAszNKMGlIGS4kuBZwNjeNJOz6EJoO_XRPPrTlnhls_0imO7-Y7nk41FJVC6A-zvI-IWtNiuWfOv4DrUd03MdqOloZm2I7c6uH0IF8EEV6WrFQ8MoqSrg2VkX6BGFu81dzfofy97BIhZIWApJDnCr9lTAI1X5q3Rxl6yQtHCy7v0NpRuS0QTqSVXcXBTcIz31neYG4d4pFCteGW0zZ64ky4e0clo8WAYxGqZO2IOppmqF97Px9F7gBdeCirpGltZ-sd0_u77buxSZ3JwVpvWAJGXKwO4EsuH54oE4RAAJF3Bq9Td6yL_Jbtrn_0G00" alt="Diagrama PlantUML: Classes detalhadas"></a>
     <p class="image-error" hidden>Não foi possível carregar a imagem. O código e o arquivo PlantUML estão disponíveis abaixo.</p>
     <details class="source"><summary>Ver código PlantUML</summary><button class="copy-code secondary" type="button">Copiar código</button><pre><code>@startuml
 skinparam classAttributeIconSize 0
-title RotaClara — Estrutura lógica da implementação Python
-class BaseHTTPRequestHandler &lt;&lt;biblioteca padrão&gt;&gt;
-class Handler {
- +do_GET()
- +do_POST()
- +do_PUT()
+title RotaClara — Classes da implementação
+class BaseHTTPRequestHandler
+class RequestHandler {
  +handle_request(method)
- +get_api(db, user, path, query)
- +write_api(db, user, path, method, data)
- +user(db): dict
- +require(user, roles)
- +route(db, user, rid): dict
- +audit(db, user, pid, action, before, after, reason)
- +send(data, status, kind, headers)
- +body(): dict
+ +send_response_data(response)
 }
-class &quot;business.py&quot; as Business &lt;&lt;módulo de funções&gt;&gt; {
- +numero(valor, nome, minimo, maximo): float
- +horario(valor): datetime
- +calcularTempoParadoPonto(ponto, ordem): float
- +calcularTempoTotalRoteiro(pontos): float
- +calcularCustoRoteiro(distancia, preco, rendimento): float
- +calcularPorcentagemJornada(minutos, jornada): float
+class Application {
+ +dispatch(method, path, query, data, cookie_header, client)
 }
-class &quot;server.py / funções&quot; as Service &lt;&lt;módulo&gt;&gt; {
- +init_db()
- +seed_demo()
- +connect(): Connection
- +scope(user, alias): tuple
- +recalc(db, rid)
- +report_data(db, user, query): dict
- +password_hash(password, salt): str
- +now(): str
+class Endpoint {
+ +match(method, path)
+ +handler
+ +requires_authentication
 }
-class &quot;sqlite3.Connection&quot; as Conn &lt;&lt;biblioteca padrão&gt;&gt; {
- +execute(sql, parametros)
- +executescript(sql)
- +commit()
- +rollback()
+class Request
+class Response
+class RouteController {
+ +create(request)
+ +start(request, route_id)
+ +record_visit(request, point_id)
+ +correct_point(request, point_id)
 }
-BaseHTTPRequestHandler &lt;|-- Handler
-Handler ..&gt; Business : valida e calcula
-Handler ..&gt; Service : sessão, escopo e relatório
-Service ..&gt; Business : recalcula totais
-Service ..&gt; Conn : cria conexão
-Handler ..&gt; Conn : persiste em transação
-note bottom of Service
-  Entidades de domínio são linhas SQLite/dicionários,
-  não classes ORM. O modelo conceitual é separado.
+class AuthenticationController
+class TeamController
+class ParameterController
+class ReportController
+class AuditController
+class Database {
+ +transaction(write)
+}
+class RouteService {
+ +create(user, data)
+ +start(user, route_id)
+ +record_visit(user, point_id, action)
+ +correct_point(user, point_id, data)
+ +recalculate(route_id)
+}
+class TeamService
+class ParameterService
+class ReportService
+class AuthenticationService
+class RouteRepository
+class TeamRepository
+class ParameterRepository
+class ReportRepository
+class AccountRepository
+class AuditRepository
+class SystemClock
+class &quot;domain.py&quot; as Domain &lt;&lt;funções puras&gt;&gt;
+BaseHTTPRequestHandler &lt;|-- RequestHandler
+RequestHandler --&gt; Application
+Application --&gt; Database : delimita transação
+RouteController --&gt; RouteService
+TeamController --&gt; TeamService
+ParameterController --&gt; ParameterService
+ReportController --&gt; ReportService
+Application ..&gt; AuthenticationService : autentica sessão
+Application ..&gt; Endpoint : resolve e executa
+Application ..&gt; Request
+Application ..&gt; Response
+Endpoint ..&gt; RouteController : handler
+AuthenticationController --&gt; AuthenticationService
+AuditController --&gt; AuditRepository
+RouteService --&gt; RouteRepository
+RouteService --&gt; TeamRepository
+RouteService --&gt; ParameterRepository
+RouteService --&gt; AuditRepository
+RouteService --&gt; SystemClock
+RouteService ..&gt; Domain
+TeamService --&gt; TeamRepository
+TeamService --&gt; AccountRepository
+ParameterService --&gt; ParameterRepository
+ParameterService --&gt; AuditRepository
+ReportService --&gt; ReportRepository
+AuthenticationService --&gt; AccountRepository
+note bottom of Database
+  Uma conexão por operação.
+  Commit ou rollback e fechamento.
+  Repositórios compartilham a conexão.
+end note
+note bottom of Application
+  dependencies.py monta serviços e controladores.
+  endpoints.py declara métodos e caminhos.
+  Uma classe de implementação por arquivo.
 end note
 @enduml
 </code></pre></details></article><article class="diagram-card" id="objetos"><div class="diagram-heading"><div><h3>Diagrama de objetos</h3><p>Instâncias do roteiro A: 75 minutos parados.</p></div><a class="download" href="/documentacao/arquivos/objetos.puml" download>Baixar .puml ↓</a></div>
@@ -728,7 +778,7 @@ py server.py --port 8001</code></pre>
 <h3>Problemas comuns</h3>
 <div class="table-wrap"><table><thead><tr><th>Situação</th><th>Como resolver</th></tr></thead><tbody><tr><td><code>python3</code> não encontrado</td><td>No Windows, tente <code>py</code>; em outros sistemas, confira <code>python --version</code> ou instale Python 3.10+</td></tr><tr><td>Porta já em uso</td><td>Encerre a execução anterior com Ctrl+C ou use <code>python3 server.py --port 8001</code></td></tr><tr><td>Navegador não conecta</td><td>Confirme que o servidor continua aberto e que a porta da URL corresponde à do terminal</td></tr><tr><td>Não aparece roteiro de hoje</td><td>Confira a data do filtro. A carga demo usa o dia em que foi criada; nos dias seguintes, crie um novo roteiro</td></tr><tr><td>Não consegue iniciar roteiro</td><td>O roteiro precisa estar planejado para a data atual de Brasília</td></tr><tr><td>Gerente não vê outra equipe</td><td>É o controle de acesso esperado; entre como administrador para ver todos</td></tr><tr><td>Diagrama não aparece</td><td>Confira internet/acesso a www.plantuml.com; abra o código ou baixe o .puml na mesma página</td></tr><tr><td>Senha antiga continua valendo</td><td>As variáveis de inicialização não alteram usuários existentes; use a senha original ou uma base de teste separada</td></tr></tbody></table></div>
 <h3>Entregas, conforme o quadro da aula</h3>
-<div class="table-wrap"><table><thead><tr><th>Parte</th><th>Conteúdo</th><th>Arquivos</th></tr></thead><tbody><tr><td>1 — Projeto preliminar</td><td>Casos de uso completos, decisões, atores, rastreabilidade</td><td><code>docs/01-projeto-preliminar.md</code></td></tr><tr><td>1 — Diagramas UML</td><td>Casos de uso, classes conceituais e robustez UC01–UC04</td><td><code>docs/diagramas/*.puml</code></td></tr><tr><td>Complemento — Projeto detalhado</td><td>Componentes, implantação, classes detalhadas, objetos e modelo relacional</td><td><code>docs/diagramas/*.puml</code></td></tr><tr><td>2 — Interface e interação</td><td>Dashboard dia/mês/período, coleta, equipe, parâmetros, histórico e auditoria</td><td><code>static/index.html</code>, <code>static/app.js</code>, <code>static/style.css</code></td></tr><tr><td>3 — Persistência</td><td>Banco SQL, API, regras de negócio e testes</td><td><code>schema.sql</code>, <code>server.py</code>, <code>business.py</code>, <code>tests/</code></td></tr><tr><td>Marca e campanha</td><td>Cinco nomes, slogans, justificativa, identidade visual, pitch, peças, plano de 14 dias, orçamento e métricas</td><td><code>docs/04-campanha-marketing.md</code>, <code>static/campanha.html</code></td></tr><tr><td>Apoio</td><td>Execução, apresentação, proteção de dados e limitações</td><td><code>docs/02-operacao-e-privacidade.md</code>, <code>docs/03-validacao.md</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Parte</th><th>Conteúdo</th><th>Arquivos</th></tr></thead><tbody><tr><td>1 — Projeto preliminar</td><td>Casos de uso completos, decisões, atores, rastreabilidade</td><td><code>docs/01-projeto-preliminar.md</code></td></tr><tr><td>1 — Diagramas UML</td><td>Casos de uso, classes conceituais e robustez UC01–UC04</td><td><code>docs/diagramas/*.puml</code></td></tr><tr><td>Complemento — Projeto detalhado</td><td>Componentes, implantação, classes detalhadas, objetos e modelo relacional</td><td><code>docs/diagramas/*.puml</code></td></tr><tr><td>2 — Interface e interação</td><td>Dashboard dia/mês/período, coleta, equipe, parâmetros, histórico e auditoria</td><td><code>static/index.html</code>, <code>static/app.js</code>, <code>static/style.css</code></td></tr><tr><td>3 — Persistência</td><td>Banco SQL, API, regras de negócio e testes</td><td><code>schema.sql</code>, <code>server.py</code>, <code>rotaclara/domain.py</code>, <code>tests/</code></td></tr><tr><td>Marca e campanha</td><td>Cinco nomes, slogans, justificativa, identidade visual, pitch, peças, plano de 14 dias, orçamento e métricas</td><td><code>docs/04-campanha-marketing.md</code>, <code>static/campanha.html</code></td></tr><tr><td>Apoio</td><td>Execução, apresentação, proteção de dados e limitações</td><td><code>docs/02-operacao-e-privacidade.md</code>, <code>docs/03-validacao.md</code></td></tr></tbody></table></div>
 <p>Preencha nomes e matrículas dos integrantes na documentação antes de entregar. Os dados demonstrativos são fictícios.</p>
 <h3>PlantUML</h3>
 <p>Os <strong>11 diagramas</strong> estão em <code>docs/diagramas</code>:</p>
@@ -740,6 +790,14 @@ py server.py --port 8001</code></pre>
 <pre><code>python3 -m unittest discover -s tests -v
 python3 tests/benchmark.py</code></pre>
 <p>Os testes usam bancos temporários e não alteram os dados da demonstração. O benchmark cobre 12 meses, 3.650 roteiros e 36.500 pontos; mede backend local, sem rede ou renderização.</p>
+<h3>Organização do código</h3>
+<p><code>server.py</code> monta as dependências e inicia o servidor. O pacote <code>rotaclara/</code> separa responsabilidades:</p>
+<div class="table-wrap"><table><thead><tr><th>Arquivo</th><th>Responsabilidade</th></tr></thead><tbody><tr><td><code>http.py</code></td><td>Adaptador HTTP, arquivos públicos e respostas</td></tr><tr><td><code>application.py</code></td><td>Fluxo da requisição: transação, autenticação e execução do endpoint</td></tr><tr><td><code>dependencies.py</code></td><td>Montagem das dependências que compartilham a conexão da requisição</td></tr><tr><td><code>endpoints.py</code> e <code>endpoint.py</code></td><td>Tabela de rotas e correspondência exata de método e caminho</td></tr><tr><td><code>controllers/</code></td><td>Um controlador por recurso, adaptando entrada e resposta dos endpoints</td></tr><tr><td><code>services/</code></td><td>Um serviço por arquivo: autenticação, equipe, roteiros, parâmetros e relatórios</td></tr><tr><td><code>domain.py</code> e <code>clock.py</code></td><td>Regras puras e relógio injetável, separados</td></tr><tr><td><code>repositories/</code></td><td>Um repositório por arquivo; consultas SQL e escopo de acesso</td></tr><tr><td><code>database.py</code></td><td>Unidade de trabalho: commit, rollback e fechamento da conexão</td></tr><tr><td><code>security/</code></td><td>Módulos separados para senhas, cookies, erros e limitação de login</td></tr><tr><td><code>request.py</code>, <code>response.py</code> e <code>report_filters.py</code></td><td>Objetos de entrada, resposta e filtros</td></tr><tr><td><code>exporters.py</code></td><td>Serialização e proteção do CSV</td></tr><tr><td><code>bootstrap.py</code></td><td>Inicialização do banco e dados fictícios</td></tr></tbody></table></div>
+<p>Os padrões utilizados são <strong>Service Layer</strong>, <strong>Repository</strong> e <strong>Unit of Work</strong>, com dependências recebidas pelos construtores. Cada escrita reúne dados e auditoria na mesma transação. <code>BEGIN IMMEDIATE</code> serializa escritas concorrentes antes das leituras de validação. A resposta HTTP só é enviada depois do commit e as conexões sempre são fechadas.</p>
+<p>Para localizar um endpoint, consulte <code>endpoints.py</code>, siga o método do controlador e então o serviço correspondente. Por exemplo: criação de roteiro → <code>controllers/route_controller.py</code> → <code>services/route_service.py</code> → <code>repositories/route_repository.py</code>. <code>application.py</code> não contém regras específicas dos recursos nem montagem de serviços. As classes de implementação ficam em arquivos próprios; somente exceções relacionadas permanecem juntas em <code>security/errors.py</code>.</p>
+<p>No navegador, <code>app.js</code> coordena eventos e estado; <code>views.js</code> apresenta as telas; <code>api.js</code> concentra as requisições; <code>charts.js</code> gerencia Chart.js; <code>reporting.js</code> agrega paradas e <code>formatters.js</code> formata valores. São módulos nativos, sem bundler.</p>
+<p>A divisão aplica responsabilidade única e injeção de dependências sem criar interfaces ou hierarquias sem uso. Cálculos e formatação compartilhados têm uma fonte única. Os nomes descrevem as operações e os comentários ficam reservados para contexto necessário.</p>
+<p>Com Node.js 22 ou superior, execute os testes JavaScript com <code>node --test tests/frontend.test.mjs</code>. Node é opcional para desenvolvimento; não é necessário para rodar o aplicativo.</p>
 <h3>Exportação</h3>
 <p>Em Histórico, aplique período, motorista e busca. <strong>Exportar CSV</strong> baixa os pontos filtrados. <strong>Imprimir / salvar PDF</strong> abre o diálogo do navegador com o mesmo recorte; selecione Salvar em PDF. Os horários do CSV são UTC (ISO 8601); a tela e a impressão usam Brasília.</p>
 <h3>Dependências e implantação</h3>
@@ -751,7 +809,9 @@ python3 tests/benchmark.py</code></pre>
 <pre><code>python3 scripts/build_docs.py</code></pre>
 <p>O comando também incorpora este README e o esquema SQL. Ele não acessa a rede nem exige pacotes extras. Atualize a página no navegador após gerar; mudanças em <code>server.py</code> exigem reiniciar o servidor.</p>
 <h3>Preferência de dependências</h3>
-<p>Priorizar CDN ou serviço de renderização externo quando adequado, mantendo as fontes locais. Chart.js usa jsDelivr com versão fixa; os diagramas usam o serviço PlantUML. A página de documentação envia o texto dos diagramas acadêmicos ao serviço para renderizar, sem enviar dados do banco ou credenciais.</p></div></details><details class="doc-document"><summary><span><strong>Operação e proteção de dados</strong><small>Execução local, roteiro de demonstração e limitações do MVP.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/02-operacao-e-privacidade.md" download>Baixar original .md ↓</a><h2>Operação, proteção de dados e demonstração</h2>
+<p>Priorizar CDN ou serviço de renderização externo quando adequado, mantendo as fontes locais. Chart.js usa jsDelivr com versão fixa; os diagramas usam o serviço PlantUML. A página de documentação envia o texto dos diagramas acadêmicos ao serviço para renderizar, sem enviar dados do banco ou credenciais.</p>
+<h3>Autoria</h3>
+<p>Feito por Gustavo Lopes e Heitor Vieira.</p></div></details><details class="doc-document"><summary><span><strong>Operação e proteção de dados</strong><small>Execução local, roteiro de demonstração e limitações do MVP.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/02-operacao-e-privacidade.md" download>Baixar original .md ↓</a><h2>Operação, proteção de dados e demonstração</h2>
 <h3>Execução local</h3>
 <p>Python 3.10 ou superior. Nenhuma biblioteca extra é necessária para rodar o aplicativo. Na pasta do projeto, executar <code>python3 server.py --demo</code> e abrir http://127.0.0.1:8000. O primeiro início imprime usuário admin e senha aleatória. A opção --demo cria pessoas e roteiros fictícios e grava as credenciais de gerente e motorista em data/credenciais-demo.txt, com permissão restrita. Não enviar esse arquivo, o banco ou senhas para repositórios públicos.</p>
 <p>Sem --demo o banco começa vazio, com o administrador e parâmetros padrão. Cadastre primeiro um gerente, depois os motoristas e seus roteiros. A variável ROTACLARA_ADMIN_PASSWORD pode definir a senha inicial; só é usada quando não há usuário. ROTACLARA_DB permite apontar para outro arquivo de banco. O servidor aceita --port para mudar a porta e escuta apenas no computador local.</p>
@@ -767,17 +827,22 @@ python3 tests/benchmark.py</code></pre>
 <p>Pendências organizacionais para uso real: definir controlador/operadores e finalidade específica; documentar a base legal aplicável com responsável competente; informar os profissionais; estabelecer retenção e descarte, canal de atendimento aos titulares, procedimento de correção/eliminação e resposta a incidentes; limitar acesso a backups; definir contratos e proteção do ambiente. Não se declara conformidade integral apenas pela existência do código. Este documento é um registro de decisões de projeto, não um parecer jurídico.</p>
 <p>A versão acadêmica não possui eliminação/anomização de pessoas pela interface nem política automática de retenção. Documentos são armazenados em texto no banco protegido por permissões locais, sem criptografia de campo; para dados reais, avaliar criptografia em repouso e controles do sistema operacional. A auditoria preserva endereços e horários antigos, devendo ter retenção definida.</p>
 <h3>Limitações técnicas explícitas</h3>
-<ul><li>Servidor HTTP de biblioteca padrão, adequado à demonstração local. Produção exige servidor/reverse proxy apropriado e HTTPS, além de ROTACLARA_SECURE_COOKIE=1.</li><li>Interface adaptável e manifesto PWA; coleta requer conexão com servidor. Service worker não faz cache de dados pessoais nem sincronização offline.</li><li>Chart.js por CDN; gráficos nativos e valores acessíveis funcionam se a biblioteca não carregar. Sem mapa ou cálculo automático de distância.</li><li>Relatório PDF usa o diálogo de impressão do navegador, não um endpoint de geração no servidor.</li><li>Um roteiro por motorista/data; chegada dentro dessa data e saída posterior permitida. Não existe divisão de tempo entre dias.</li><li>Não há recuperação de senha, MFA, alteração/exclusão de contas ou gestão completa de frota. O limite de tentativas é mantido em memória e reinicia com o processo.</li><li>Auditoria completa no banco, últimas 500 ocorrências na tela. O dono do arquivo de banco continua capaz de alterar o esquema; triggers não substituem proteção de infraestrutura.</li></ul></div></details><details class="doc-document"><summary><span><strong>Registro de validação</strong><small>Testes de negócio e API, desempenho e verificação da interface.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/03-validacao.md" download>Baixar original .md ↓</a><h2>Registro de validação — 16/09/2026</h2>
+<ul><li>Servidor HTTP de biblioteca padrão, adequado à demonstração local. Produção exige servidor/reverse proxy apropriado e HTTPS, além de ROTACLARA_SECURE_COOKIE=1.</li><li>Interface adaptável e manifesto PWA; coleta requer conexão com servidor. Service worker não faz cache de dados pessoais nem sincronização offline.</li><li>Chart.js por CDN; gráficos nativos e valores acessíveis funcionam se a biblioteca não carregar. Sem mapa ou cálculo automático de distância.</li><li>Relatório PDF usa o diálogo de impressão do navegador, não um endpoint de geração no servidor.</li><li>Um roteiro por motorista/data; chegada dentro dessa data e saída posterior permitida. Não existe divisão de tempo entre dias.</li><li>Não há recuperação de senha, MFA, alteração/exclusão de contas ou gestão completa de frota. O limite de tentativas é mantido em memória e reinicia com o processo.</li><li>Auditoria completa no banco, últimas 500 ocorrências na tela. O dono do arquivo de banco continua capaz de alterar o esquema; triggers não substituem proteção de infraestrutura.</li></ul></div></details><details class="doc-document"><summary><span><strong>Registro de validação</strong><small>Testes de negócio e API, desempenho e verificação da interface.</small></span><span class="expand-label">Ler documento +</span></summary><div class="document-content"><a class="download" href="/documentacao/arquivos/03-validacao.md" download>Baixar original .md ↓</a><h2>Registro de validação — 20/09/2026</h2>
 <h3>Testes automatizados</h3>
 <p>Comando: <code>python3 -m unittest discover -s tests -v</code>.</p>
-<p>Resultado: <strong>20 testes passaram</strong>. Testes do handler HTTP são executados em memória, sem sockets, usando os métodos reais de autenticação, autorização, validação e persistência em bancos SQLite temporários.</p>
+<p>Resultado: <strong>33 testes Python passaram</strong>. Testes do handler HTTP são executados em memória, sem sockets, usando os métodos reais de autenticação, autorização, validação e persistência em bancos SQLite temporários.</p>
 <p>Cobertura verificada:</p>
 <ul><li>RN01: partida com horário continua com zero minutos.</li><li>RN02/RN03: roteiros A=75, B=41, C=45 minutos; minutos fracionários preservados.</li><li>RN04: 75/480 = 15,625%; agregação de dois motoristas usa 960 minutos.</li><li>RN07: 100 km × R$ 6/l ÷ 10 km/l = R$ 60.</li><li>Rejeição de saída sem chegada, horários invertidos, datetime sem fuso, rendimento zero, negativo, NaN e infinito.</li><li>Diferença temporal correta ao atravessar meia-noite com fusos diferentes.</li><li>Login, proteção de origem, motorista impedido de alterar parâmetros ou ler auditoria.</li><li>Isolamento de motorista e gerente da outra equipe.</li><li>Coleta exige início do roteiro e saída do ponto anterior; última saída conclui o roteiro.</li><li>Correção auditada, exportação filtrada e proteção contra fórmulas no CSV.</li><li>Triggers bloqueiam exclusão da auditoria.</li><li>Mudanças de parâmetros não alteram roteiros históricos.</li><li>Duplicidade motorista/data rejeitada; ponto inválido desfaz toda a criação do roteiro.</li><li>Intervalo invertido rejeitado; dados persistidos podem ser consultados em nova conexão.</li></ul>
+<p>Também passaram <strong>3 testes JavaScript</strong> com <code>node --test tests/frontend.test.mjs</code>: agregação dos gráficos, escape de HTML e conversão de fuso no editor.</p>
+<p>Novas verificações: rollback e fechamento das conexões, escritas concorrentes sem perda de atualização, revogação de sessão no logout, senhas com espaços, correspondência exata dos endpoints, corpo e pontos inválidos, filtros de pendências e acesso aos módulos JavaScript.</p>
+<p>A separação em controladores, serviços e repositórios foi verificada novamente pela suíte completa. Os testes adicionais confirmam que somente POST /api/login é público, que caminhos parecidos com o CSV não são aceitos e que /api/me não expõe o hash da senha. A verificação no Chrome abaixo ocorreu antes desta última reorganização de arquivos do backend.</p>
 <h3>Desempenho do backend</h3>
 <p>Comando: <code>python3 tests/benchmark.py</code>.</p>
-<p>Base sintética de 12 meses: 10 motoristas, 3.650 roteiros, 36.500 pontos. Cinco consultas com agregação e serialização JSON: 0,1181; 0,1218; 0,1198; 0,1209; 0,1207 segundos. Pior tempo: <strong>0,1218 s</strong> nesta máquina. Payload completo aproximado: <strong>11 MB</strong>.</p>
+<p>Base sintética de 12 meses: 10 motoristas, 3.650 roteiros, 36.500 pontos. Cinco consultas com agregação e serialização JSON: 0,1325; 0,1228; 0,1213; 0,1237; 0,1217 segundos. Pior tempo: <strong>0,1325 s</strong> nesta máquina. Payload completo aproximado: <strong>11 MB</strong>.</p>
 <p>Esta medição atende ao limite de 3 segundos para a parte de consulta local na carga ensaiada. Não mede transporte HTTP nem renderização de milhares de linhas. Portanto não comprova, isoladamente, RNF03 ponta a ponta em implantação real; bases maiores devem receber paginação, agregação no servidor e ensaios adicionais de interface/rede.</p>
-<h3>Verificação no navegador</h3>
+<h3>Verificação após a refatoração — 20/09/2026</h3>
+<p>Chrome automatizado, servidor na porta 8001 e banco temporário separado da demonstração: login de administrador, dashboard com quatro indicadores e dois gráficos via CDN, navegação pelas seis telas, inclusão e remoção de campos de pontos com renumeração correta, filtro de pendências, logout e página de documentação com cinco documentos. Nenhum erro JavaScript observado. O servidor temporário foi encerrado após a verificação.</p>
+<h3>Verificação no navegador em 16/09/2026, anterior à refatoração</h3>
 <ul><li>Login real com administrador e dashboard exibindo dados da base de demonstração.</li><li>Gráficos de barras e rosca carregados via Chart.js/CDN.</li><li>Navegação até Roteiros e coleta, filtro Dia e abertura do formulário de montagem.</li><li>Viewport móvel de 390 × 844: página sem transbordamento horizontal; campos e botões se reorganizam verticalmente.</li><li>Estrutura de impressão existente no CSS; a seleção final de Salvar em PDF depende do navegador e não foi automatizada.</li><li>Sintaxe de Python e JavaScript verificada.</li></ul>
 <h3>Artefatos</h3>
 <p>11 arquivos PlantUML editáveis, documentação de casos de uso e campanha, esquema SQL, código do aplicativo, testes e guia de execução. Os 11 arquivos PlantUML foram renderizados e validados pelo serviço PlantUML no navegador, sem instalação local. O modelo relacional foi corrigido: o primeiro atributo agora fica em nova linha após a abertura de cada entidade. A página /documentacao reúne imagens, códigos-fonte, downloads e textos completos, com link nos rodapés.</p></div></details></section><footer><span>RotaClara · Documentação acadêmica</span><span>Feito por Gustavo Lopes e Heitor Vieira</span><a href="#">Voltar ao topo ↑</a><a href="/">Abrir aplicativo</a></footer></main><div id="toast" role="status" aria-live="polite" hidden></div></body></html>
